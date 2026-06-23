@@ -35,52 +35,62 @@
   transition: background-color 0.3s ease;
 }
 
-/* Light Theme Variables Override - Premium iOS Style */
+/* Light Theme Variables Override - Premium Slate-White Dashboard Style */
 #root.light-theme {
-  --bg-deep: #f5f5f7;
-  --bg-card: rgba(255, 255, 255, 0.85);
-  --bg-card-hover: #e8e8ed;
-  --bg-input: #ffffff;
-  --border-dim: rgba(0, 0, 0, 0.08);
-  --border-bright: rgba(0, 0, 0, 0.15);
+  --bg-deep: #eef2f6;          /* Clean silver-slate background */
+  --bg-card: #ffffff;          /* Pure white card panels */
+  --bg-card-hover: #f1f5f9;    /* Light hover states */
+  --bg-input: #f8fafc;
+  --border-dim: #e2e8f0;       /* Slate-200 */
+  --border-bright: #cbd5e1;    /* Slate-300 */
   
-  /* High contrast colors for daylight legibility */
-  --neon-green: #34c759;     /* iOS Green */
-  --neon-cyan: #0071e3;      /* iOS Blue */
-  --neon-orange: #ff9500;    /* iOS Orange */
-  --neon-red: #ff3b30;       /* iOS Red */
-  --neon-purple: #af52de;    /* iOS Purple */
+  /* High contrast colors for day mode legibility */
+  --neon-green: #059669;       /* Rich Emerald Green */
+  --neon-cyan: #0284c7;        /* Rich Cobalt Cyan/Blue */
+  --neon-orange: #ea580c;      /* Rich Deep Orange */
+  --neon-red: #dc2626;         /* Crimson Red */
+  --neon-purple: #7c3aed;      /* Deep Purple */
   
   /* Text Colors */
-  --text-primary: #1d1d1f;
-  --text-secondary: #6e6e73;
-  --text-muted: #86868b;
+  --text-primary: #0f172a;     /* Slate-900 */
+  --text-secondary: #475569;   /* Slate-600 */
+  --text-muted: #64748b;       /* Slate-500 */
 
-  /* Soft shadows instead of glow parameters for light mode */
-  --glow-green: 0 4px 12px rgba(52, 199, 89, 0.12);
-  --glow-cyan: 0 4px 12px rgba(0, 113, 227, 0.12);
-  --glow-orange: 0 4px 12px rgba(255, 149, 0, 0.12);
-  --glow-red: 0 4px 12px rgba(255, 59, 48, 0.12);
-  --glow-purple: 0 4px 12px rgba(175, 82, 222, 0.12);
+  /* Premium soft shadows for daylight contrast */
+  --glow-green: 0 4px 15px rgba(5, 150, 105, 0.12);
+  --glow-cyan: 0 4px 15px rgba(2, 132, 199, 0.12);
+  --glow-orange: 0 4px 15px rgba(234, 88, 12, 0.12);
+  --glow-red: 0 4px 15px rgba(220, 38, 38, 0.12);
+  --glow-purple: 0 4px 15px rgba(124, 58, 237, 0.12);
 }
 
 /* Light Mode element overrides */
 #root.light-theme h1 {
-  background: linear-gradient(135deg, #1d1d1f 0%, #6e6e73 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: none !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: initial !important;
 }
 #root.light-theme svg line {
-  stroke: rgba(0, 0, 0, 0.15) !important;
+  stroke: rgba(15, 23, 42, 0.15) !important;
 }
 #root.light-theme svg circle[stroke="var(--border-dim)"] {
-  stroke: rgba(0, 0, 0, 0.08) !important;
+  stroke: #cbd5e1 !important;
 }
 #root.light-theme svg text {
-  fill: #6e6e73 !important;
+  fill: #475569 !important;
 }
 #root.light-theme .leaflet-container {
-  background: #f5f5f7 !important;
+  background: #eef2f6 !important;
+}
+/* Recalibrate the GForce circles in light theme */
+#root.light-theme circle[stroke="rgba(255,255,255,0.08)"] {
+  stroke: #cbd5e1 !important;
+}
+#root.light-theme circle[stroke="rgba(255,255,255,0.04)"] {
+  stroke: #e2e8f0 !important;
+}
+#root.light-theme text[fill="var(--text-muted)"] {
+  fill: #64748b !important;
 }
 
 * {
@@ -465,4 +475,52 @@ h2, h3, h4 {
   align-items: center;
   gap: 6px;
   z-index: 5;
+}
+
+/* Sliding Toggle Switch (iOS System Design) */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border-bright);
+  transition: 0.25s ease-in-out;
+  border-radius: 34px;
+  border: 1px solid var(--border-dim);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
+  transition: 0.25s ease-in-out;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+input:checked + .slider {
+  background-color: var(--neon-cyan);
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
 }

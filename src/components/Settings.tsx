@@ -99,25 +99,22 @@ export const Settings: React.FC<SettingsProps> = ({
           </div>
         </div>
 
-        {/* Theme preference */}
-        <div className="form-group" style={{ marginTop: '16px' }}>
-          <label className="form-label">UI Color Theme</label>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              className={`btn ${theme === 'dark' ? 'btn-primary' : 'btn-outline'}`}
-              style={{ flex: 1, padding: '10px' }}
-              onClick={() => setTheme('dark')}
-            >
-              Dark Theme (HUD Glow)
-            </button>
-            <button
-              className={`btn ${theme === 'light' ? 'btn-primary' : 'btn-outline'}`}
-              style={{ flex: 1, padding: '10px' }}
-              onClick={() => setTheme('light')}
-            >
-              Light Theme (Daylight)
-            </button>
+        {/* Theme preference toggle */}
+        <div className="form-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', borderTop: '1px solid var(--border-dim)', paddingTop: '16px' }}>
+          <div>
+            <label className="form-label" style={{ margin: 0 }}>Light Theme Mode</label>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+              Enable clean slate daylight theme instead of dark HUD glow
+            </span>
           </div>
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={theme === 'light'}
+              onChange={(e) => setTheme(e.target.checked ? 'light' : 'dark')}
+            />
+            <span className="slider"></span>
+          </label>
         </div>
 
         {/* Audio Toggles */}

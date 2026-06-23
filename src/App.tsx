@@ -175,39 +175,10 @@ function App() {
 
   return (
     <>
-      {/* Top Header, Theme Toggle & Simulation Mode Controls */}
+      {/* Top Header & Simulation Toggle */}
       <header className="sim-header">
         <h1 style={{ fontSize: '1.4rem', margin: 0, letterSpacing: '2px' }}>OpenTrip</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          
-          {/* Quick theme toggle button */}
-          <button
-            className="btn"
-            onClick={() => {
-              const nextTheme = settings.theme === 'dark' ? 'light' : 'dark';
-              handleSaveSettings({
-                ...settings,
-                theme: nextTheme
-              });
-            }}
-            style={{ 
-              padding: '6px', 
-              borderRadius: '8px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              background: 'var(--bg-card-hover)',
-              border: '1px solid var(--border-dim)'
-            }}
-            title={`Switch to ${settings.theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-          >
-            {settings.theme === 'dark' ? (
-              <Sun size={15} style={{ color: 'var(--neon-orange)' }} />
-            ) : (
-              <Moon size={15} style={{ color: 'var(--neon-cyan)' }} />
-            )}
-          </button>
-
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {isSimulationMode ? (
             <span className="sim-badge sim-badge-on">Sim Mode</span>
           ) : (
