@@ -74,6 +74,7 @@ export async function deleteTrip(id: string): Promise<void> {
 const DEFAULT_SETTINGS: AppSettings = {
   units: 'metric',
   mapProvider: 'osm',
+  theme: 'dark',
   googleMapsApiKey: '',
   soundAlerts: true,
   cameraRadius: 500,

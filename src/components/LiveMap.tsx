@@ -9,6 +9,7 @@ interface LiveMapProps {
   activeAlerts: CameraAlert[];
   googleMapsApiKey: string;
   mapProvider: 'google' | 'osm';
+  theme: 'light' | 'dark'; // Theme styling (light vs dark)
   height?: string; // Optional custom height (e.g. 100% for fullscreen)
 }
 
@@ -85,6 +86,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
   activeAlerts,
   googleMapsApiKey,
   mapProvider,
+  theme,
   height
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -122,10 +124,10 @@ export const LiveMap: React.FC<LiveMapProps> = ({
     leafletAlertMarkersRef.current = [];
   };
 
-  // Trigger cleanup when provider changes
+  // Trigger cleanup when provider or theme changes
   useEffect(() => {
     destroyMaps();
-  }, [mapProvider]);
+  }, [mapProvider, theme]);
 
   // Clean up on component unmount
   useEffect(() => {
@@ -183,7 +185,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
           zoom: 16,
           minZoom: 12, // Prevent zooming out past city/neighborhood level
           maxZoom: 20, // Prevent zooming in past street/building level
-          styles: GOOGLE_MAPS_DARK_THEME,
+          styles: theme === 'light' ? [] : GOOGLE_MAPS_DARK_THEME,
           disableDefaultUI: true,
           zoomControl: false
         };
@@ -282,8 +284,11 @@ export const LiveMap: React.FC<LiveMapProps> = ({
 
         leafletMapInstanceRef.current = map;
 
-        // Load Dark Mode Tiles from CartoDB (Dark Matter)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        // Load Clean Tiles (CartoDB Light/Dark)
+        const tileUrl = theme === 'light'
+          ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+          : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+        L.tileLayer(tileUrl, {
           maxZoom: 20
         }).addTo(map);
 
@@ -380,7 +385,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         leafletAlertMarkersRef.current.push(marker as any);
       });
     }
-  }, [currentCoords, path, activeAlerts, mapProvider, isGoogleMapsScriptLoaded]);
+  }, [currentCoords, path, activeAlerts, mapProvider, isGoogleMapsScriptLoaded, theme]);
 
   // Display Fallback setup if Google Maps is chosen but Key is missing
   const showGoogleError = mapProvider === 'google' && (!googleMapsApiKey || googleLoadError);

@@ -35,6 +35,41 @@
   transition: background-color 0.3s ease;
 }
 
+/* Light Theme Variables Override */
+#root.light-theme {
+  --bg-deep: #f2f2f7;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: #ebebef;
+  --bg-input: #ffffff;
+  --border-dim: #d1d1d6;
+  --border-bright: #a1a1aa;
+  
+  /* High contrast colors for light mode legibility */
+  --neon-green: #008f39;
+  --neon-cyan: #007a87;
+  --neon-orange: #d97706;
+  --neon-red: #cc003c;
+  --neon-purple: #9333ea;
+  
+  /* Text Colors */
+  --text-primary: #1c1c1e;
+  --text-secondary: #575765;
+  --text-muted: #8e8e9a;
+
+  /* Subtle Shadows */
+  --glow-green: 0 0 10px rgba(0, 143, 57, 0.15);
+  --glow-cyan: 0 0 10px rgba(0, 122, 135, 0.15);
+  --glow-orange: 0 0 10px rgba(217, 119, 6, 0.15);
+  --glow-red: 0 0 10px rgba(204, 0, 60, 0.15);
+  --glow-purple: 0 0 10px rgba(147, 51, 234, 0.15);
+}
+
+#root.light-theme h1 {
+  background: linear-gradient(135deg, #1c1c1e 0%, var(--text-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

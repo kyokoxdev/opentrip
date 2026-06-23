@@ -23,6 +23,7 @@ function App() {
   const [settings, setSettings] = useState<AppSettings>({
     units: 'metric',
     mapProvider: 'osm',
+    theme: 'dark',
     googleMapsApiKey: '',
     soundAlerts: true,
     cameraRadius: 500,
@@ -47,6 +48,18 @@ function App() {
     }
     loadData();
   }, []);
+
+  // Apply theme class to HTML root element dynamically
+  useEffect(() => {
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+      if (settings.theme === 'light') {
+        rootElement.classList.add('light-theme');
+      } else {
+        rootElement.classList.remove('light-theme');
+      }
+    }
+  }, [settings.theme]);
 
   // GPS telemetrics hook
   const gps = useGPS(isSimulationMode);
@@ -197,6 +210,7 @@ function App() {
               activeAlerts={alerts.activeAlerts}
               googleMapsApiKey={settings.googleMapsApiKey}
               mapProvider={settings.mapProvider}
+              theme={settings.theme}
               height="100%"
             />
 
