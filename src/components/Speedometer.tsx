@@ -73,7 +73,7 @@ export const Speedometer: React.FC<SpeedometerProps> = ({
             />
           </svg>
           <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <span style={{ fontFamily: 'var(--gauge-font)', fontSize: '2.5rem', fontWeight: 700, lineHeight: '0.9', color: '#ffffff' }}>
+            <span style={{ fontFamily: 'var(--gauge-font)', fontSize: '2.5rem', fontWeight: 700, lineHeight: '0.9', color: 'var(--text-primary)' }}>
               {roundedSpeed}
             </span>
             <span style={{ fontSize: '0.55rem', fontWeight: 700, color: 'var(--text-secondary)', letterSpacing: '0.5px' }}>
@@ -86,7 +86,7 @@ export const Speedometer: React.FC<SpeedometerProps> = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', textAlign: 'left' }}>
           <div>
             <span style={{ fontSize: '0.55rem', color: 'var(--text-secondary)', textTransform: 'uppercase', display: 'block' }}>Average</span>
-            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#ffffff', fontFamily: 'var(--gauge-font)' }}>
+            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--gauge-font)' }}>
               {roundedAvg} <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{speedUnit.toLowerCase()}</span>
             </span>
           </div>
@@ -131,7 +131,7 @@ export const Speedometer: React.FC<SpeedometerProps> = ({
           y1="10"
           x2="100"
           y2={isMajor ? "20" : "15"}
-          stroke={isMajor ? "rgba(255, 255, 255, 0.4)" : "rgba(255, 255, 255, 0.15)"}
+          stroke={isMajor ? "var(--tick-major)" : "var(--tick-minor)"}
           strokeWidth={isMajor ? "2" : "1"}
           transform={`rotate(${angle} 100 100)`}
         />
@@ -148,7 +148,7 @@ export const Speedometer: React.FC<SpeedometerProps> = ({
         flexDirection: 'column', 
         alignItems: 'center', 
         padding: '24px 16px',
-        background: 'linear-gradient(180deg, #16161c 0%, rgba(22, 22, 28, 0.5) 100%)'
+        background: 'linear-gradient(180deg, var(--bg-card) 0%, var(--bg-card-gradient-end) 100%)'
       }}
     >
       {/* Top Banner Indicator Row */}
@@ -233,7 +233,7 @@ export const Speedometer: React.FC<SpeedometerProps> = ({
               fontSize: '5rem',
               fontWeight: 700,
               lineHeight: '0.9',
-              color: '#ffffff',
+              color: 'var(--text-primary)',
               textShadow: '0 0 10px rgba(0, 229, 255, 0.2)'
             }}
           >

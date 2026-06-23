@@ -257,7 +257,7 @@ export const ShareCard: React.FC<ShareCardProps> = ({ trip, units }) => {
             style={{
               width: '120px',
               height: '120px',
-              background: '#0c0c0e',
+              background: 'var(--bg-deep)',
               border: '1px solid var(--border-dim)',
               borderRadius: '8px',
               display: 'flex',

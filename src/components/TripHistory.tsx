@@ -121,19 +121,19 @@ export const TripHistory: React.FC<TripHistoryProps> = ({
             Extreme G-Force Telemetry
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', textAlign: 'center' }}>
-            <div style={{ padding: '12px', background: 'rgba(255, 255, 255, 0.01)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
+            <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '10px', border: '1px solid var(--border-dim)' }}>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Cornering</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 700, fontFamily: 'var(--gauge-font)', color: 'var(--neon-orange)', marginTop: '4px' }}>
                 {selectedTrip.maxGForce.lat.toFixed(2)}G
               </div>
             </div>
-            <div style={{ padding: '12px', background: 'rgba(255, 255, 255, 0.01)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
+            <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '10px', border: '1px solid var(--border-dim)' }}>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Acceleration</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 700, fontFamily: 'var(--gauge-font)', color: 'var(--neon-cyan)', marginTop: '4px' }}>
                 {selectedTrip.maxGForce.acc.toFixed(2)}G
               </div>
             </div>
-            <div style={{ padding: '12px', background: 'rgba(255, 255, 255, 0.01)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
+            <div style={{ padding: '12px', background: 'var(--bg-input)', borderRadius: '10px', border: '1px solid var(--border-dim)' }}>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Braking</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 700, fontFamily: 'var(--gauge-font)', color: 'var(--neon-red)', marginTop: '4px' }}>
                 {selectedTrip.maxGForce.brk.toFixed(2)}G
@@ -198,7 +198,7 @@ export const TripHistory: React.FC<TripHistoryProps> = ({
                   padding: '16px',
                   cursor: 'pointer',
                   margin: 0,
-                  background: 'linear-gradient(135deg, var(--bg-card) 0%, rgba(22, 22, 28, 0.4) 100%)'
+                  background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card-gradient-end) 100%)'
                 }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

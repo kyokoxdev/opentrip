@@ -229,8 +229,8 @@ function App() {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 height: '116px',
-                background: 'rgba(22, 22, 28, 0.85)',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
+                background: 'var(--bg-card-glass)',
+                border: '1px solid var(--border-glass)'
               }}
             >
               {/* Core Speed Gauges widgets in compact mode */}
@@ -282,16 +282,16 @@ function App() {
                 display: 'flex', 
                 flexDirection: 'column', 
                 gap: '12px',
-                background: 'rgba(22, 22, 28, 0.85)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.6)'
+                background: 'var(--bg-card-glass)',
+                border: '1px solid var(--border-glass)',
+                boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)'
               }}
             >
               {/* Trip status labels */}
               <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
                 <div>
                   <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Distance</div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'var(--gauge-font)', color: '#ffffff' }}>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'var(--gauge-font)', color: 'var(--text-primary)' }}>
                     {displayDistance.toFixed(2)}
                     <span style={{ fontSize: '0.75rem', color: 'var(--neon-cyan)', marginLeft: '2px' }}>{distLabel}</span>
                   </div>
@@ -301,7 +301,7 @@ function App() {
                 
                 <div>
                   <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Time Elapsed</div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'var(--gauge-font)', color: '#ffffff' }}>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'var(--gauge-font)', color: 'var(--text-primary)' }}>
                     {formatTimer(gps.duration)}
                   </div>
                 </div>

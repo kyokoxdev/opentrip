@@ -16,7 +16,7 @@ export const AlertWidget: React.FC<AlertWidgetProps> = ({ closestAlert }) => {
           alignItems: 'center',
           gap: '12px',
           padding: '16px',
-          background: 'linear-gradient(90deg, rgba(0, 255, 102, 0.05) 0%, rgba(22, 22, 28, 0.8) 100%)'
+          background: 'var(--alert-bg-safe)'
         }}
       >
         <div 
@@ -52,8 +52,8 @@ export const AlertWidget: React.FC<AlertWidgetProps> = ({ closestAlert }) => {
   
   const alertColor = isCritical ? 'var(--neon-red)' : isSpeedCamera ? 'var(--neon-red)' : 'var(--neon-orange)';
   const alertBg = isCritical 
-    ? 'linear-gradient(90deg, rgba(255, 0, 85, 0.25) 0%, rgba(22, 22, 28, 0.95) 100%)'
-    : 'linear-gradient(90deg, rgba(255, 159, 0, 0.15) 0%, rgba(22, 22, 28, 0.95) 100%)';
+    ? 'var(--alert-bg-critical)'
+    : 'var(--alert-bg-warning)';
   const glowShadow = isCritical ? 'var(--glow-red)' : 'var(--glow-orange)';
 
   return (
@@ -95,7 +95,7 @@ export const AlertWidget: React.FC<AlertWidgetProps> = ({ closestAlert }) => {
           </h4>
         </div>
         <p style={{ fontSize: '0.8rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-          Proximity: <span style={{ color: '#ffffff', fontFamily: 'var(--mono-font)', fontSize: '0.9rem' }}>{dist}m</span>
+          Proximity: <span style={{ color: 'var(--text-primary)', fontFamily: 'var(--mono-font)', fontSize: '0.9rem' }}>{dist}m</span>
         </p>
       </div>
 

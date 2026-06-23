@@ -23,22 +23,22 @@ export const GForceMeter: React.FC<GForceMeterProps> = ({ gForce, maxG, onCalibr
           width: '76px', 
           height: '76px', 
           borderRadius: '50%',
-          border: '1px solid rgba(255,255,255,0.1)',
-          background: 'rgba(12, 12, 14, 0.85)',
+          border: '1px solid var(--border-glass)',
+          background: 'var(--g-bubble-bg)',
           display: 'flex', 
           justifyContent: 'center', 
           alignItems: 'center',
-          boxShadow: 'inset 0 0 10px rgba(0,0,0,0.9), 0 4px 12px rgba(0,0,0,0.5)',
+          boxShadow: 'inset 0 0 10px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.2)',
           cursor: 'pointer'
         }}
         onClick={onCalibrate}
         title="G-Force Meter (Tap to Reset Zero)"
       >
         <svg width="76" height="76" style={{ pointerEvents: 'none' }}>
-          <circle cx="38" cy="38" r="32" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" />
-          <circle cx="38" cy="38" r="16" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" strokeDasharray="1.5 1.5" />
-          <line x1="38" y1="4" x2="38" y2="72" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
-          <line x1="4" y1="38" x2="72" y2="38" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
+          <circle cx="38" cy="38" r="32" fill="none" stroke="var(--g-grid-outer)" strokeWidth="0.8" />
+          <circle cx="38" cy="38" r="16" fill="none" stroke="var(--g-grid-inner)" strokeWidth="0.5" strokeDasharray="1.5 1.5" />
+          <line x1="38" y1="4" x2="38" y2="72" stroke="var(--g-grid-inner)" strokeWidth="0.5" />
+          <line x1="4" y1="38" x2="72" y2="38" stroke="var(--g-grid-inner)" strokeWidth="0.5" />
         </svg>
         {/* Compact Bubble */}
         <div 
@@ -64,10 +64,10 @@ export const GForceMeter: React.FC<GForceMeterProps> = ({ gForce, maxG, onCalibr
             fontFamily: 'var(--mono-font)', 
             color: 'var(--text-secondary)',
             fontWeight: 'bold',
-            backgroundColor: 'rgba(0,0,0,0.85)',
+            backgroundColor: 'var(--g-badge-bg)',
             padding: '1px 4px',
             borderRadius: '4px',
-            border: '1px solid rgba(255,255,255,0.05)'
+            border: '1px solid var(--g-badge-border)'
           }}
         >
           {Math.max(Math.abs(gForce.x), Math.abs(gForce.y)).toFixed(1)}G
@@ -94,7 +94,7 @@ export const GForceMeter: React.FC<GForceMeterProps> = ({ gForce, maxG, onCalibr
         display: 'flex', 
         flexDirection: 'column', 
         alignItems: 'center',
-        background: 'linear-gradient(180deg, #16161c 0%, rgba(22, 22, 28, 0.5) 100%)'
+        background: 'linear-gradient(180deg, var(--bg-card) 0%, var(--bg-card-gradient-end) 100%)'
       }}
     >
       {/* Header controls row */}
@@ -115,13 +115,13 @@ export const GForceMeter: React.FC<GForceMeterProps> = ({ gForce, maxG, onCalibr
       <div style={{ position: 'relative', width: '200px', height: '200px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <svg width="200" height="200" style={{ pointerEvents: 'none' }}>
           {/* Outer Ring 1.0G */}
-          <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" />
+          <circle cx="100" cy="100" r="90" fill="none" stroke="var(--g-grid-outer)" strokeWidth="1.5" />
           {/* Inner Ring 0.5G */}
-          <circle cx="100" cy="100" r="45" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx="100" cy="100" r="45" fill="none" stroke="var(--g-grid-inner)" strokeWidth="1" strokeDasharray="3 3" />
           
           {/* Crosshairs axis */}
-          <line x1="100" y1="10" x2="100" y2="190" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-          <line x1="10" y1="100" x2="190" y2="100" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+          <line x1="100" y1="10" x2="100" y2="190" stroke="var(--g-grid-inner)" strokeWidth="1" />
+          <line x1="10" y1="100" x2="190" y2="100" stroke="var(--g-grid-inner)" strokeWidth="1" />
 
           {/* Directional labels inside grid */}
           <text x="100" y="24" fill="var(--text-muted)" fontSize="7" fontWeight="bold" textAnchor="middle">ACCEL</text>
@@ -130,8 +130,8 @@ export const GForceMeter: React.FC<GForceMeterProps> = ({ gForce, maxG, onCalibr
           <text x="176" y="102" fill="var(--text-muted)" fontSize="7" fontWeight="bold" textAnchor="middle">RIGHT</text>
 
           {/* Ring scale values */}
-          <text x="100" y="62" fill="rgba(255,255,255,0.15)" fontSize="7" fontWeight="bold" textAnchor="middle">0.5 G</text>
-          <text x="100" y="42" fill="rgba(255,255,255,0.15)" fontSize="7" fontWeight="bold" textAnchor="middle">1.0 G</text>
+          <text x="100" y="62" fill="var(--g-grid-text)" fontSize="7" fontWeight="bold" textAnchor="middle">0.5 G</text>
+          <text x="100" y="42" fill="var(--g-grid-text)" fontSize="7" fontWeight="bold" textAnchor="middle">1.0 G</text>
 
           {/* Render Max peak indicators on Grid */}
           {maxG.lat > 0.02 && (
@@ -171,14 +171,14 @@ export const GForceMeter: React.FC<GForceMeterProps> = ({ gForce, maxG, onCalibr
         <div 
           style={{
             position: 'absolute',
-            backgroundColor: 'rgba(12, 12, 14, 0.85)',
-            border: '1px solid var(--border-dim)',
+            backgroundColor: 'var(--bg-card)',
+            border: '1px solid var(--border-bright)',
             padding: '4px 10px',
             borderRadius: '20px',
             fontSize: '0.8rem',
             fontFamily: 'var(--mono-font)',
             fontWeight: 'bold',
-            color: 'var(--neon-green)',
+            color: 'var(--text-primary)',
             pointerEvents: 'none'
           }}
         >

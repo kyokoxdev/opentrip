@@ -9,6 +9,11 @@
   --border-dim: #262632;
   --border-bright: #3d3d4e;
   
+  /* Glassmorphism card variables */
+  --bg-card-glass: rgba(22, 22, 28, 0.65);
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --bg-card-gradient-end: rgba(22, 22, 28, 0.4);
+  
   /* Neon Accents */
   --neon-green: #00ff66;
   --neon-cyan: #00e5ff;
@@ -20,6 +25,27 @@
   --text-primary: #ffffff;
   --text-secondary: #8e8e9f;
   --text-muted: #57576c;
+
+  /* Gauge/Grid ticks */
+  --tick-major: rgba(255, 255, 255, 0.4);
+  --tick-minor: rgba(255, 255, 255, 0.15);
+  
+  /* G-Force grid styles */
+  --g-grid-outer: rgba(255, 255, 255, 0.08);
+  --g-grid-inner: rgba(255, 255, 255, 0.04);
+  --g-grid-text: rgba(255, 255, 255, 0.15);
+  --g-bubble-bg: rgba(12, 12, 14, 0.85);
+  --g-badge-bg: rgba(0, 0, 0, 0.85);
+  --g-badge-border: rgba(255, 255, 255, 0.05);
+
+  /* Alert background gradients */
+  --alert-bg-critical: linear-gradient(90deg, rgba(255, 0, 85, 0.25) 0%, rgba(22, 22, 28, 0.95) 100%);
+  --alert-bg-warning: linear-gradient(90deg, rgba(255, 159, 0, 0.15) 0%, rgba(22, 22, 28, 0.95) 100%);
+  --alert-bg-safe: linear-gradient(90deg, rgba(0, 255, 102, 0.05) 0%, rgba(22, 22, 28, 0.8) 100%);
+
+  /* Buttons text colors */
+  --btn-primary-text: #000000;
+  --btn-success-text: #000000;
 
   /* Neon Glowing Shadows */
   --glow-green: 0 0 15px rgba(0, 255, 102, 0.4);
@@ -44,6 +70,11 @@
   --border-dim: #e2e8f0;       /* Slate-200 */
   --border-bright: #cbd5e1;    /* Slate-300 */
   
+  /* Glassmorphism card variables */
+  --bg-card-glass: rgba(255, 255, 255, 0.85);
+  --border-glass: rgba(15, 23, 42, 0.08);
+  --bg-card-gradient-end: rgba(255, 255, 255, 0.45);
+  
   /* High contrast colors for day mode legibility */
   --neon-green: #059669;       /* Rich Emerald Green */
   --neon-cyan: #0284c7;        /* Rich Cobalt Cyan/Blue */
@@ -55,6 +86,27 @@
   --text-primary: #0f172a;     /* Slate-900 */
   --text-secondary: #475569;   /* Slate-600 */
   --text-muted: #64748b;       /* Slate-500 */
+
+  /* Gauge/Grid ticks */
+  --tick-major: rgba(15, 23, 42, 0.4);
+  --tick-minor: rgba(15, 23, 42, 0.15);
+  
+  /* G-Force grid styles */
+  --g-grid-outer: rgba(15, 23, 42, 0.12);
+  --g-grid-inner: rgba(15, 23, 42, 0.06);
+  --g-grid-text: rgba(15, 23, 42, 0.25);
+  --g-bubble-bg: rgba(255, 255, 255, 0.85);
+  --g-badge-bg: rgba(255, 255, 255, 0.9);
+  --g-badge-border: rgba(15, 23, 42, 0.1);
+
+  /* Alert background gradients */
+  --alert-bg-critical: linear-gradient(90deg, rgba(255, 0, 85, 0.12) 0%, rgba(255, 255, 255, 0.95) 100%);
+  --alert-bg-warning: linear-gradient(90deg, rgba(255, 159, 0, 0.1) 0%, rgba(255, 255, 255, 0.95) 100%);
+  --alert-bg-safe: linear-gradient(90deg, rgba(5, 150, 105, 0.05) 0%, rgba(255, 255, 255, 0.9) 100%);
+
+  /* Buttons text colors */
+  --btn-primary-text: #ffffff;
+  --btn-success-text: #ffffff;
 
   /* Premium soft shadows for daylight contrast */
   --glow-green: 0 4px 15px rgba(5, 150, 105, 0.12);
@@ -70,27 +122,18 @@
   color: #0f172a !important;
   -webkit-text-fill-color: initial !important;
 }
-#root.light-theme svg line {
+#root.light-theme svg line.osm-override {
   stroke: rgba(15, 23, 42, 0.15) !important;
 }
 #root.light-theme svg circle[stroke="var(--border-dim)"] {
   stroke: #cbd5e1 !important;
 }
-#root.light-theme svg text {
-  fill: #475569 !important;
-}
 #root.light-theme .leaflet-container {
   background: #eef2f6 !important;
 }
-/* Recalibrate the GForce circles in light theme */
-#root.light-theme circle[stroke="rgba(255,255,255,0.08)"] {
-  stroke: #cbd5e1 !important;
-}
-#root.light-theme circle[stroke="rgba(255,255,255,0.04)"] {
-  stroke: #e2e8f0 !important;
-}
-#root.light-theme text[fill="var(--text-muted)"] {
-  fill: #64748b !important;
+#root.light-theme .stat-item {
+  background: rgba(15, 23, 42, 0.02) !important;
+  border-color: rgba(15, 23, 42, 0.06) !important;
 }
 
 * {
@@ -172,10 +215,10 @@ h2, h3, h4 {
 
 /* Glassmorphic/Card Styling */
 .card {
-  background: rgba(22, 22, 28, 0.65);
+  background: var(--bg-card-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-glass);
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 16px;
@@ -186,7 +229,7 @@ h2, h3, h4 {
 }
 
 .card:hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--text-muted);
 }
 
 .card-glowing-green {
@@ -266,7 +309,7 @@ h2, h3, h4 {
 .btn-primary {
   background: var(--neon-cyan);
   border-color: var(--neon-cyan);
-  color: #000000;
+  color: var(--btn-primary-text);
   box-shadow: var(--glow-cyan);
 }
 .btn-primary:hover {
@@ -277,7 +320,7 @@ h2, h3, h4 {
 .btn-success {
   background: var(--neon-green);
   border-color: var(--neon-green);
-  color: #000000;
+  color: var(--btn-success-text);
   box-shadow: var(--glow-green);
 }
 .btn-success:hover {
@@ -312,7 +355,7 @@ h2, h3, h4 {
   left: 0;
   right: 0;
   height: 72px;
-  background: rgba(22, 22, 28, 0.85);
+  background: var(--bg-card-glass);
   backdrop-filter: blur(16px);
   border-top: 1px solid var(--border-dim);
   display: flex;
