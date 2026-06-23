@@ -181,6 +181,8 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         const mapOptions = {
           center: { lat: currentCoords.lat, lng: currentCoords.lng },
           zoom: 16,
+          minZoom: 12, // Prevent zooming out past city/neighborhood level
+          maxZoom: 20, // Prevent zooming in past street/building level
           styles: GOOGLE_MAPS_DARK_THEME,
           disableDefaultUI: true,
           zoomControl: false
@@ -273,7 +275,9 @@ export const LiveMap: React.FC<LiveMapProps> = ({
           zoomControl: false,
           attributionControl: false,
           fadeAnimation: true,
-          zoomAnimation: true
+          zoomAnimation: true,
+          minZoom: 12, // Prevent zooming out past city/neighborhood level
+          maxZoom: 18  // Prevent zooming in past building level
         }).setView([currentCoords.lat, currentCoords.lng], 16);
 
         leafletMapInstanceRef.current = map;
