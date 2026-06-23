@@ -188,53 +188,106 @@ function App() {
       <main className="app-content">
         
         {activeTab === 'dashboard' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ position: 'relative', width: '100%', height: 'calc(100vh - 50px - 72px)', overflow: 'hidden' }}>
             
-            {/* Speed Camera proximity warnings banner ticker */}
-            <AlertWidget closestAlert={alerts.closestAlert} />
-
-            {/* Core Speed Gauges widgets */}
-            <Speedometer 
-              speed={gps.currentCoords.speed}
-              heading={gps.currentCoords.heading}
-              units={settings.units}
-              isRecording={gps.isRecording}
-            />
-
-            {/* G Force Bubble gauge */}
-            <GForceMeter 
-              gForce={motion.gForce}
-              maxG={maxG}
-              onCalibrate={motion.calibrate}
-            />
-
-            {/* Google map route view */}
+            {/* Google or OpenStreetMap full height route view */}
             <LiveMap 
               currentCoords={gps.currentCoords}
               path={gps.path}
               activeAlerts={alerts.activeAlerts}
               googleMapsApiKey={settings.googleMapsApiKey}
               mapProvider={settings.mapProvider}
+              height="100%"
             />
 
-            {/* Recording Controls & Active stats row */}
-            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              
+            {/* Top Floating HUD: Speedometer (left) & G-Force Meter (right) */}
+            <div 
+              className="card" 
+              style={{ 
+                position: 'absolute', 
+                top: '12px', 
+                left: '12px', 
+                right: '12px', 
+                zIndex: 10, 
+                margin: 0,
+                padding: '8px 16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                height: '116px',
+                background: 'rgba(22, 22, 28, 0.85)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}
+            >
+              {/* Core Speed Gauges widgets in compact mode */}
+              <Speedometer 
+                speed={gps.currentCoords.speed}
+                maxSpeed={gps.maxSpeed}
+                avgSpeed={gps.avgSpeed}
+                heading={gps.currentCoords.heading}
+                units={settings.units}
+                isRecording={gps.isRecording}
+                compact={true}
+              />
+
+              {/* G Force Bubble gauge in compact mode */}
+              <GForceMeter 
+                gForce={motion.gForce}
+                maxG={maxG}
+                onCalibrate={motion.calibrate}
+                compact={true}
+              />
+            </div>
+
+            {/* Speed Camera warnings floating above control card */}
+            {alerts.closestAlert && (
+              <div 
+                style={{ 
+                  position: 'absolute', 
+                  bottom: '150px', 
+                  left: '12px', 
+                  right: '12px', 
+                  zIndex: 10,
+                  margin: 0 
+                }}
+              >
+                <AlertWidget closestAlert={alerts.closestAlert} />
+              </div>
+            )}
+
+            {/* Floating Recording Controls Card at the bottom */}
+            <div 
+              className="card" 
+              style={{ 
+                position: 'absolute',
+                bottom: '12px',
+                left: '12px',
+                right: '12px',
+                zIndex: 10,
+                margin: 0,
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '12px',
+                background: 'rgba(22, 22, 28, 0.85)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.6)'
+              }}
+            >
               {/* Trip status labels */}
               <div style={{ display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
                 <div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Current Distance</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'var(--gauge-font)', color: '#ffffff' }}>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Distance</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'var(--gauge-font)', color: '#ffffff' }}>
                     {displayDistance.toFixed(2)}
-                    <span style={{ fontSize: '0.9rem', color: 'var(--neon-cyan)', marginLeft: '4px' }}>{distLabel}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--neon-cyan)', marginLeft: '2px' }}>{distLabel}</span>
                   </div>
                 </div>
                 
                 <div style={{ width: '1px', background: 'var(--border-dim)' }} />
                 
                 <div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Time Elapsed</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'var(--gauge-font)', color: '#ffffff' }}>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Time Elapsed</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'var(--gauge-font)', color: '#ffffff' }}>
                     {formatTimer(gps.duration)}
                   </div>
                 </div>
@@ -245,19 +298,19 @@ function App() {
                 <button 
                   className="btn btn-danger" 
                   onClick={handleStopTrip}
-                  style={{ width: '100%', padding: '14px', fontSize: '1rem' }}
+                  style={{ width: '100%', padding: '10px', fontSize: '0.9rem', borderRadius: '10px' }}
                 >
-                  <Square size={18} fill="#ffffff" />
-                  <span>STOP & COMPILE TRIP</span>
+                  <Square size={16} fill="#ffffff" />
+                  <span>STOP DRIVE</span>
                 </button>
               ) : (
                 <button 
                   className="btn btn-success" 
                   onClick={handleStartTrip}
-                  style={{ width: '100%', padding: '14px', fontSize: '1rem' }}
+                  style={{ width: '100%', padding: '10px', fontSize: '0.9rem', borderRadius: '10px' }}
                 >
-                  <Play size={18} fill="#000000" />
-                  <span>START TRIP LOGGING</span>
+                  <Play size={16} fill="#000000" />
+                  <span>START DRIVE LOGGING</span>
                 </button>
               )}
             </div>
@@ -266,20 +319,24 @@ function App() {
         )}
 
         {activeTab === 'history' && (
-          <TripHistory 
-            trips={tripsList}
-            settings={settings}
-            onDeleteTrip={handleDeleteTrip}
-          />
+          <div style={{ padding: '16px', height: 'calc(100vh - 50px - 72px)', overflowY: 'auto', paddingBottom: '90px' }}>
+            <TripHistory 
+              trips={tripsList}
+              settings={settings}
+              onDeleteTrip={handleDeleteTrip}
+            />
+          </div>
         )}
 
         {activeTab === 'settings' && (
-          <Settings 
-            settings={settings}
-            onSaveSettings={handleSaveSettings}
-            onCalibrate={motion.calibrate}
-            onClearHistory={handleClearHistory}
-          />
+          <div style={{ padding: '16px', height: 'calc(100vh - 50px - 72px)', overflowY: 'auto', paddingBottom: '90px' }}>
+            <Settings 
+              settings={settings}
+              onSaveSettings={handleSaveSettings}
+              onCalibrate={motion.calibrate}
+              onClearHistory={handleClearHistory}
+            />
+          </div>
         )}
 
       </main>

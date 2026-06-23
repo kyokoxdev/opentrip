@@ -9,6 +9,7 @@ interface LiveMapProps {
   activeAlerts: CameraAlert[];
   googleMapsApiKey: string;
   mapProvider: 'google' | 'osm';
+  height?: string; // Optional custom height (e.g. 100% for fullscreen)
 }
 
 // Dark Mode Theme JSON for Google Maps
@@ -83,7 +84,8 @@ export const LiveMap: React.FC<LiveMapProps> = ({
   path,
   activeAlerts,
   googleMapsApiKey,
-  mapProvider
+  mapProvider,
+  height
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   
@@ -380,7 +382,10 @@ export const LiveMap: React.FC<LiveMapProps> = ({
   const showGoogleError = mapProvider === 'google' && (!googleMapsApiKey || googleLoadError);
 
   return (
-    <div className="map-container">
+    <div 
+      className="map-container"
+      style={height ? { height, borderRadius: 0, border: 'none', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } : undefined}
+    >
       {/* Target Mount Div for Google/OSM Map frameworks */}
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%', zIndex: 1 }} />
 

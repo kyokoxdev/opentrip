@@ -5,200 +5,225 @@ interface GForceMeterProps {
   gForce: GForce;
   maxG: { lat: number; acc: number; brk: number };
   onCalibrate: () => void;
+  compact?: boolean;
 }
 
-export const GForceMeter: React.FC<GForceMeterProps> = ({ gForce, maxG, onCalibrate }) => {
-  // Convert G-force to coordinate percentages (max scale corresponds to 1.0G)
+export const GForceMeter: React.FC<GForceMeterProps> = ({ gForce, maxG, onCalibrate, compact }) => {
   const maxScaleG = 1.0;
   
-  // Calculate positions (capped at -100% to +100%)
-  const xPercent = Math.max(-100, Math.min(100, (gForce.x / maxScaleG) * 100));
-  const yPercent = Math.max(-100, Math.min(100, (gForce.y / maxScaleG) * 100));
+  if (compact) {
+    const compactRadius = 32; // smaller radius
+    const compX = Math.max(-compactRadius, Math.min(compactRadius, (gForce.x / maxScaleG) * compactRadius));
+    const compY = Math.max(-compactRadius, Math.min(compactRadius, (gForce.y / maxScaleG) * compactRadius));
 
-  // Peak G markers
-  const peakRight = (maxG.lat / maxScaleG) * 100;
-  const peakLeft = -(maxG.lat / maxScaleG) * 100;
-  const peakAcc = (maxG.acc / maxScaleG) * 100;
-  const peakBrk = -(maxG.brk / maxScaleG) * 100;
+    return (
+      <div 
+        style={{ 
+          position: 'relative', 
+          width: '76px', 
+          height: '76px', 
+          borderRadius: '50%',
+          border: '1px solid rgba(255,255,255,0.1)',
+          background: 'rgba(12, 12, 14, 0.85)',
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          boxShadow: 'inset 0 0 10px rgba(0,0,0,0.9), 0 4px 12px rgba(0,0,0,0.5)',
+          cursor: 'pointer'
+        }}
+        onClick={onCalibrate}
+        title="G-Force Meter (Tap to Reset Zero)"
+      >
+        <svg width="76" height="76" style={{ pointerEvents: 'none' }}>
+          <circle cx="38" cy="38" r="32" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" />
+          <circle cx="38" cy="38" r="16" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" strokeDasharray="1.5 1.5" />
+          <line x1="38" y1="4" x2="38" y2="72" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
+          <line x1="4" y1="38" x2="72" y2="38" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />
+        </svg>
+        {/* Compact Bubble */}
+        <div 
+          style={{
+            position: 'absolute',
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--neon-green)',
+            boxShadow: '0 0 6px var(--neon-green)',
+            left: '50%',
+            top: '50%',
+            transform: `translate(calc(-50% + ${compX}px), calc(-50% + ${compY}px))`,
+            transition: 'transform 0.05s ease-out'
+          }}
+        />
+        {/* Tiny numeric G badge */}
+        <span 
+          style={{ 
+            position: 'absolute', 
+            bottom: '2px', 
+            fontSize: '0.55rem', 
+            fontFamily: 'var(--mono-font)', 
+            color: 'var(--text-secondary)',
+            fontWeight: 'bold',
+            backgroundColor: 'rgba(0,0,0,0.85)',
+            padding: '1px 4px',
+            borderRadius: '4px',
+            border: '1px solid rgba(255,255,255,0.05)'
+          }}
+        >
+          {Math.max(Math.abs(gForce.x), Math.abs(gForce.y)).toFixed(1)}G
+        </span>
+      </div>
+    );
+  }
+
+  // Convert G values to grid coordinate translations (canvas limit is 100px radius)
+  const gridRadius = 90; // outer circle radius
+  const xOffset = Math.max(-gridRadius, Math.min(gridRadius, (gForce.x / maxScaleG) * gridRadius));
+  const yOffset = Math.max(-gridRadius, Math.min(gridRadius, (gForce.y / maxScaleG) * gridRadius));
+
+  // Peaks coordinate translations
+  const peakLeft = -(maxG.lat / maxScaleG) * gridRadius;
+  const peakRight = (maxG.lat / maxScaleG) * gridRadius;
+  const peakAcc = -(maxG.acc / maxScaleG) * gridRadius;
+  const peakBrk = (maxG.brk / maxScaleG) * gridRadius;
 
   return (
-    <div className="card card-glowing-green" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <h3 style={{ textTransform: 'uppercase', color: 'var(--text-secondary)', fontSize: '0.85rem', letterSpacing: '1px' }}>
-          G-Force telemetry
+    <div 
+      className="card card-glowing-green" 
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center',
+        background: 'linear-gradient(180deg, #16161c 0%, rgba(22, 22, 28, 0.5) 100%)'
+      }}
+    >
+      {/* Header controls row */}
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <h3 style={{ textTransform: 'uppercase', color: 'var(--text-secondary)', fontSize: '0.8rem', letterSpacing: '1px' }}>
+          G-Force Dynamics
         </h3>
         <button 
           className="btn btn-outline" 
           onClick={onCalibrate}
-          style={{ padding: '4px 10px', fontSize: '0.75rem', borderRadius: '6px' }}
+          style={{ padding: '4px 10px', fontSize: '0.7rem', borderRadius: '6px', border: '1px solid rgba(0, 255, 102, 0.2)' }}
         >
-          Tare/Calibrate
+          RESET ZERO (TARE)
         </button>
       </div>
 
-      {/* Outer Gauge Ring */}
-      <div 
-        style={{
-          position: 'relative',
-          width: '200px',
-          height: '200px',
-          borderRadius: '50%',
-          border: '1px dashed var(--border-bright)',
-          background: 'radial-gradient(circle, rgba(22,22,28,0.4) 0%, rgba(12,12,14,0.8) 100%)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          overflow: 'hidden',
-          boxShadow: 'inset 0 0 20px rgba(0,0,0,0.8)'
-        }}
-      >
-        {/* Concentric rings at 0.5G and 1.0G */}
-        <div style={{
-          position: 'absolute',
-          width: '100px',
-          height: '100px',
-          borderRadius: '50%',
-          border: '1px dotted rgba(255, 255, 255, 0.08)',
-        }} />
-        
-        <span style={{
-          position: 'absolute',
-          top: '30px',
-          fontSize: '0.65rem',
-          color: 'var(--text-muted)',
-          fontWeight: 600
-        }}>0.5G</span>
-        
-        <span style={{
-          position: 'absolute',
-          top: '6px',
-          fontSize: '0.65rem',
-          color: 'var(--text-muted)',
-          fontWeight: 600
-        }}>1.0G</span>
+      {/* SVG-based Friction Circle Grid */}
+      <div style={{ position: 'relative', width: '200px', height: '200px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <svg width="200" height="200" style={{ pointerEvents: 'none' }}>
+          {/* Outer Ring 1.0G */}
+          <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" />
+          {/* Inner Ring 0.5G */}
+          <circle cx="100" cy="100" r="45" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="3 3" />
+          
+          {/* Crosshairs axis */}
+          <line x1="100" y1="10" x2="100" y2="190" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+          <line x1="10" y1="100" x2="190" y2="100" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
 
-        {/* Crosshair Lines */}
-        <div style={{ position: 'absolute', top: 0, bottom: 0, left: '50%', width: '1px', background: 'rgba(255,255,255,0.05)' }} />
-        <div style={{ position: 'absolute', left: 0, right: 0, top: '50%', height: '1px', background: 'rgba(255,255,255,0.05)' }} />
+          {/* Directional labels inside grid */}
+          <text x="100" y="24" fill="var(--text-muted)" fontSize="7" fontWeight="bold" textAnchor="middle">ACCEL</text>
+          <text x="100" y="184" fill="var(--text-muted)" fontSize="7" fontWeight="bold" textAnchor="middle">BRAKE</text>
+          <text x="24" y="102" fill="var(--text-muted)" fontSize="7" fontWeight="bold" textAnchor="middle">LEFT</text>
+          <text x="176" y="102" fill="var(--text-muted)" fontSize="7" fontWeight="bold" textAnchor="middle">RIGHT</text>
 
-        {/* Peak G Trace Box Bounds / Peak Markers (faint dots) */}
-        {maxG.lat > 0.05 && (
-          <>
-            {/* Peak Left */}
-            <div style={{
-              position: 'absolute',
-              left: `calc(50% + ${peakLeft}% - 3px)`,
-              top: '50%',
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              backgroundColor: 'rgba(255, 159, 0, 0.3)',
-              transform: 'translate(-50%, -50%)',
-            }} />
-            {/* Peak Right */}
-            <div style={{
-              position: 'absolute',
-              left: `calc(50% + ${peakRight}% - 3px)`,
-              top: '50%',
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              backgroundColor: 'rgba(255, 159, 0, 0.3)',
-              transform: 'translate(-50%, -50%)',
-            }} />
-          </>
-        )}
-        {maxG.acc > 0.05 && (
-          <div style={{
-            position: 'absolute',
-            left: '50%',
-            top: `calc(50% - ${peakAcc}% - 3px)`,
-            width: '6px',
-            height: '6px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(0, 229, 255, 0.3)',
-            transform: 'translate(-50%, -50%)',
-          }} />
-        )}
-        {maxG.brk > 0.05 && (
-          <div style={{
-            position: 'absolute',
-            left: '50%',
-            top: `calc(50% - ${peakBrk}% - 3px)`,
-            width: '6px',
-            height: '6px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255, 0, 85, 0.3)',
-            transform: 'translate(-50%, -50%)',
-          }} />
-        )}
+          {/* Ring scale values */}
+          <text x="100" y="62" fill="rgba(255,255,255,0.15)" fontSize="7" fontWeight="bold" textAnchor="middle">0.5 G</text>
+          <text x="100" y="42" fill="rgba(255,255,255,0.15)" fontSize="7" fontWeight="bold" textAnchor="middle">1.0 G</text>
 
-        {/* Live G-force Bubble */}
+          {/* Render Max peak indicators on Grid */}
+          {maxG.lat > 0.02 && (
+            <>
+              {/* Max Left */}
+              <circle cx={100 + peakLeft} cy="100" r="3" fill="rgba(255, 159, 0, 0.3)" />
+              {/* Max Right */}
+              <circle cx={100 + peakRight} cy="100" r="3" fill="rgba(255, 159, 0, 0.3)" />
+            </>
+          )}
+          {maxG.acc > 0.02 && (
+            <circle cx="100" cy={100 + peakAcc} r="3" fill="rgba(0, 229, 255, 0.3)" />
+          )}
+          {maxG.brk > 0.02 && (
+            <circle cx="100" cy={100 + peakBrk} r="3" fill="rgba(255, 0, 85, 0.3)" />
+          )}
+        </svg>
+
+        {/* Live glowing G-force bubble */}
         <div 
           style={{
             position: 'absolute',
-            width: '20px',
-            height: '20px',
+            width: '18px',
+            height: '18px',
             borderRadius: '50%',
             background: 'radial-gradient(circle, #00ff66 0%, #00d957 70%)',
-            boxShadow: '0 0 12px #00ff66, inset 0 2px 4px rgba(255,255,255,0.6)',
+            boxShadow: '0 0 10px #00ff66, inset 0 2px 4px rgba(255,255,255,0.6)',
             left: '50%',
             top: '50%',
-            transform: `translate(calc(-50% + ${xPercent}px), calc(-50% - ${yPercent}px))`,
+            // Subtracting 9px from translation to offset for center coordinates (since center is 100,100)
+            transform: `translate(calc(-50% + ${xOffset}px), calc(-50% + ${yOffset}px))`,
             transition: 'transform 0.05s ease-out'
           }}
         />
-        
-        {/* Real-time numerical display inside center */}
+
+        {/* Real-time floating value ticker */}
         <div 
           style={{
             position: 'absolute',
-            bottom: '12px',
-            fontFamily: 'var(--gauge-font)',
-            fontWeight: 700,
-            fontSize: '0.85rem',
-            color: 'var(--text-secondary)',
-            backgroundColor: 'rgba(0,0,0,0.6)',
-            padding: '2px 8px',
-            borderRadius: '10px',
-            border: '1px solid rgba(255,255,255,0.05)'
+            backgroundColor: 'rgba(12, 12, 14, 0.85)',
+            border: '1px solid var(--border-dim)',
+            padding: '4px 10px',
+            borderRadius: '20px',
+            fontSize: '0.8rem',
+            fontFamily: 'var(--mono-font)',
+            fontWeight: 'bold',
+            color: 'var(--neon-green)',
+            pointerEvents: 'none'
           }}
         >
-          {Math.abs(gForce.x).toFixed(2)}G LAT | {Math.abs(gForce.y).toFixed(2)}G LON
+          {Math.abs(gForce.x).toFixed(2)}G LAT | {Math.abs(-gForce.y).toFixed(2)}G LON
         </div>
       </div>
 
-      {/* Peak statistics labels footer */}
+      {/* Grid summarizing max peaks */}
       <div 
         style={{
-          display: 'flex',
-          justifyContent: 'space-around',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
           width: '100%',
-          marginTop: '12px',
+          marginTop: '16px',
           borderTop: '1px solid var(--border-dim)',
-          paddingTop: '12px',
-          fontSize: '0.8rem'
+          paddingTop: '16px',
+          textAlign: 'center'
         }}
       >
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', textTransform: 'uppercase' }}>Max Lateral</div>
-          <div style={{ fontWeight: 700, color: 'var(--neon-orange)', fontFamily: 'var(--gauge-font)', fontSize: '1.1rem' }}>
+        <div style={{ borderRight: '1px solid var(--border-dim)' }}>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Max Cornering
+          </div>
+          <div style={{ fontFamily: 'var(--gauge-font)', fontSize: '1.2rem', fontWeight: 700, color: 'var(--neon-orange)', marginTop: '2px' }}>
             {maxG.lat.toFixed(2)}G
           </div>
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', textTransform: 'uppercase' }}>Max Accel</div>
-          <div style={{ fontWeight: 700, color: 'var(--neon-cyan)', fontFamily: 'var(--gauge-font)', fontSize: '1.1rem' }}>
+        <div style={{ borderRight: '1px solid var(--border-dim)' }}>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Max Acceleration
+          </div>
+          <div style={{ fontFamily: 'var(--gauge-font)', fontSize: '1.2rem', fontWeight: 700, color: 'var(--neon-cyan)', marginTop: '2px' }}>
             {maxG.acc.toFixed(2)}G
           </div>
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', textTransform: 'uppercase' }}>Max Braking</div>
-          <div style={{ fontWeight: 700, color: 'var(--neon-red)', fontFamily: 'var(--gauge-font)', fontSize: '1.1rem' }}>
+        <div>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Max Braking
+          </div>
+          <div style={{ fontFamily: 'var(--gauge-font)', fontSize: '1.2rem', fontWeight: 700, color: 'var(--neon-red)', marginTop: '2px' }}>
             {maxG.brk.toFixed(2)}G
           </div>
         </div>
       </div>
+      
     </div>
   );
 };
