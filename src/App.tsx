@@ -22,6 +22,7 @@ function App() {
   const [tripsList, setTripsList] = useState<Trip[]>([]);
   const [settings, setSettings] = useState<AppSettings>({
     units: 'metric',
+    mapProvider: 'osm',
     googleMapsApiKey: '',
     soundAlerts: true,
     cameraRadius: 500,
@@ -213,6 +214,7 @@ function App() {
               path={gps.path}
               activeAlerts={alerts.activeAlerts}
               googleMapsApiKey={settings.googleMapsApiKey}
+              mapProvider={settings.mapProvider}
             />
 
             {/* Recording Controls & Active stats row */}

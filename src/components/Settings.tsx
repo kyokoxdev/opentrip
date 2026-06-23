@@ -17,6 +17,7 @@ export const Settings: React.FC<SettingsProps> = ({
 }) => {
   const [apiKey, setApiKey] = React.useState(settings.googleMapsApiKey);
   const [units, setUnits] = React.useState(settings.units);
+  const [mapProvider, setMapProvider] = React.useState(settings.mapProvider);
   const [sound, setSound] = React.useState(settings.soundAlerts);
   const [radius, setRadius] = React.useState(settings.cameraRadius);
   const [showKey, setShowKey] = React.useState(false);
@@ -25,6 +26,7 @@ export const Settings: React.FC<SettingsProps> = ({
   const handleSave = () => {
     onSaveSettings({
       units,
+      mapProvider,
       googleMapsApiKey: apiKey,
       soundAlerts: sound,
       cameraRadius: Number(radius),
@@ -70,6 +72,27 @@ export const Settings: React.FC<SettingsProps> = ({
               onClick={() => setUnits('imperial')}
             >
               Imperial (mph, miles)
+            </button>
+          </div>
+        </div>
+
+        {/* Map Provider preference */}
+        <div className="form-group" style={{ marginTop: '16px' }}>
+          <label className="form-label">Map Engine Provider</label>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              className={`btn ${mapProvider === 'osm' ? 'btn-primary' : 'btn-outline'}`}
+              style={{ flex: 1, padding: '10px' }}
+              onClick={() => setMapProvider('osm')}
+            >
+              OpenStreetMap (Free)
+            </button>
+            <button
+              className={`btn ${mapProvider === 'google' ? 'btn-primary' : 'btn-outline'}`}
+              style={{ flex: 1, padding: '10px' }}
+              onClick={() => setMapProvider('google')}
+            >
+              Google Maps (Paid API)
             </button>
           </div>
         </div>

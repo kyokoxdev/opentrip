@@ -73,6 +73,7 @@ export async function deleteTrip(id: string): Promise<void> {
 
 const DEFAULT_SETTINGS: AppSettings = {
   units: 'metric',
+  mapProvider: 'osm',
   googleMapsApiKey: '',
   soundAlerts: true,
   cameraRadius: 500,

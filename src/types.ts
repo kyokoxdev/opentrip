@@ -46,6 +46,7 @@ export interface CameraAlert {
 
 export interface AppSettings {
   units: 'metric' | 'imperial'; // metric: km/h, km. imperial: mph, miles.
+  mapProvider: 'google' | 'osm'; // Google Maps vs OpenStreetMap
   googleMapsApiKey: string;
   soundAlerts: boolean;
   cameraRadius: number; // distance threshold in meters to trigger alerts
