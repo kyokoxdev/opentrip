@@ -35,39 +35,52 @@
   transition: background-color 0.3s ease;
 }
 
-/* Light Theme Variables Override */
+/* Light Theme Variables Override - Premium iOS Style */
 #root.light-theme {
-  --bg-deep: #f2f2f7;
+  --bg-deep: #f5f5f7;
   --bg-card: rgba(255, 255, 255, 0.85);
-  --bg-card-hover: #ebebef;
+  --bg-card-hover: #e8e8ed;
   --bg-input: #ffffff;
-  --border-dim: #d1d1d6;
-  --border-bright: #a1a1aa;
+  --border-dim: rgba(0, 0, 0, 0.08);
+  --border-bright: rgba(0, 0, 0, 0.15);
   
-  /* High contrast colors for light mode legibility */
-  --neon-green: #008f39;
-  --neon-cyan: #007a87;
-  --neon-orange: #d97706;
-  --neon-red: #cc003c;
-  --neon-purple: #9333ea;
+  /* High contrast colors for daylight legibility */
+  --neon-green: #34c759;     /* iOS Green */
+  --neon-cyan: #0071e3;      /* iOS Blue */
+  --neon-orange: #ff9500;    /* iOS Orange */
+  --neon-red: #ff3b30;       /* iOS Red */
+  --neon-purple: #af52de;    /* iOS Purple */
   
   /* Text Colors */
-  --text-primary: #1c1c1e;
-  --text-secondary: #575765;
-  --text-muted: #8e8e9a;
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-muted: #86868b;
 
-  /* Subtle Shadows */
-  --glow-green: 0 0 10px rgba(0, 143, 57, 0.15);
-  --glow-cyan: 0 0 10px rgba(0, 122, 135, 0.15);
-  --glow-orange: 0 0 10px rgba(217, 119, 6, 0.15);
-  --glow-red: 0 0 10px rgba(204, 0, 60, 0.15);
-  --glow-purple: 0 0 10px rgba(147, 51, 234, 0.15);
+  /* Soft shadows instead of glow parameters for light mode */
+  --glow-green: 0 4px 12px rgba(52, 199, 89, 0.12);
+  --glow-cyan: 0 4px 12px rgba(0, 113, 227, 0.12);
+  --glow-orange: 0 4px 12px rgba(255, 149, 0, 0.12);
+  --glow-red: 0 4px 12px rgba(255, 59, 48, 0.12);
+  --glow-purple: 0 4px 12px rgba(175, 82, 222, 0.12);
 }
 
+/* Light Mode element overrides */
 #root.light-theme h1 {
-  background: linear-gradient(135deg, #1c1c1e 0%, var(--text-secondary) 100%);
+  background: linear-gradient(135deg, #1d1d1f 0%, #6e6e73 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+#root.light-theme svg line {
+  stroke: rgba(0, 0, 0, 0.15) !important;
+}
+#root.light-theme svg circle[stroke="var(--border-dim)"] {
+  stroke: rgba(0, 0, 0, 0.08) !important;
+}
+#root.light-theme svg text {
+  fill: #6e6e73 !important;
+}
+#root.light-theme .leaflet-container {
+  background: #f5f5f7 !important;
 }
 
 * {
