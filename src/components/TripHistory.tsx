@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Trip, AppSettings } from '../types';
 import { History, Calendar, Clock, Navigation, Zap, Trash2, ArrowLeft, Image } from 'lucide-react';
 import { ShareCard } from './ShareCard';
+import { PastTripMap } from './PastTripMap';
+import { TelemetryCharts } from './TelemetryCharts';
 
 interface TripHistoryProps {
   trips: Trip[];
@@ -15,6 +17,7 @@ export const TripHistory: React.FC<TripHistoryProps> = ({
   onDeleteTrip
 }) => {
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [activeTelemetryIndex, setActiveTelemetryIndex] = useState<number | null>(null);
   
   const isImperial = settings.units === 'imperial';
   const distUnit = isImperial ? 'mi' : 'km';
@@ -33,11 +36,76 @@ export const TripHistory: React.FC<TripHistoryProps> = ({
 
   const handleTripSelect = (trip: Trip) => {
     setSelectedTrip(trip);
+    setActiveTelemetryIndex(null);
   };
 
   const handleBackToList = () => {
     setSelectedTrip(null);
+    setActiveTelemetryIndex(null);
   };
+
+  // Process telemetry logs (generate from path if empty)
+  const telemetryLogs = useMemo(() => {
+    if (!selectedTrip) return [];
+    if (selectedTrip.telemetryLogs && selectedTrip.telemetryLogs.length > 0) {
+      return selectedTrip.telemetryLogs;
+    }
+    
+    if (!selectedTrip.path || selectedTrip.path.length === 0) {
+      return [];
+    }
+    
+    const getHeading = (p1: { lat: number; lng: number }, p2: { lat: number; lng: number }) => {
+      const dLat = p2.lat - p1.lat;
+      const dLng = p2.lng - p1.lng;
+      return Math.atan2(dLng, dLat) * 180 / Math.PI;
+    };
+
+    return selectedTrip.path.map((coord, idx) => {
+      let latG = 0;
+      let accG = 0;
+      let brkG = 0;
+      
+      if (idx > 0) {
+        const prev = selectedTrip.path[idx - 1];
+        const dt = (coord.timestamp - prev.timestamp) / 1000;
+        if (dt > 0) {
+          const dv = (coord.speed - prev.speed) / 3.6;
+          const accel = dv / dt;
+          const longG = accel / 9.81;
+          if (longG > 0) {
+            accG = longG;
+          } else {
+            brkG = Math.abs(longG);
+          }
+
+          let headingDiff = 0;
+          if (coord.heading !== null && prev.heading !== null) {
+            headingDiff = coord.heading - prev.heading;
+          } else {
+            const h1 = idx > 1 ? getHeading(selectedTrip.path[idx - 2], prev) : 0;
+            const h2 = getHeading(prev, coord);
+            headingDiff = h2 - h1;
+          }
+          if (headingDiff > 180) headingDiff -= 360;
+          if (headingDiff < -180) headingDiff += 360;
+          const turnRateRadSec = (headingDiff * Math.PI) / (180 * dt);
+          const speedMps = coord.speed / 3.6;
+          const lateralAccel = speedMps * turnRateRadSec;
+          latG = lateralAccel / 9.81;
+        }
+      }
+      
+      return {
+        timestamp: coord.timestamp,
+        speed: coord.speed,
+        gForce: {
+          x: latG,
+          y: accG - brkG
+        }
+      };
+    });
+  }, [selectedTrip]);
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -114,6 +182,32 @@ export const TripHistory: React.FC<TripHistoryProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Route Map Card */}
+        {selectedTrip.path && selectedTrip.path.length > 0 && (
+          <div className="card" style={{ padding: '12px' }}>
+            <h3 style={{ textTransform: 'uppercase', color: 'var(--text-secondary)', fontSize: '0.85rem', letterSpacing: '1px', marginBottom: '8px' }}>
+              Trip Route Track
+            </h3>
+            <PastTripMap 
+              path={selectedTrip.path}
+              mapProvider={settings.mapProvider}
+              googleMapsApiKey={settings.googleMapsApiKey}
+              theme={settings.theme}
+              activeTelemetryIndex={activeTelemetryIndex}
+            />
+          </div>
+        )}
+
+        {/* Telemetry Charts Card */}
+        {telemetryLogs.length > 0 && (
+          <TelemetryCharts 
+            telemetryLogs={telemetryLogs}
+            units={settings.units}
+            activeTelemetryIndex={activeTelemetryIndex}
+            setActiveTelemetryIndex={setActiveTelemetryIndex}
+          />
+        )}
 
         {/* Peak G forces metrics */}
         <div className="card">

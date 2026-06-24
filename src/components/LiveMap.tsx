@@ -11,6 +11,8 @@ interface LiveMapProps {
   mapProvider: 'google' | 'osm';
   theme: 'light' | 'dark'; // Theme styling (light vs dark)
   height?: string; // Optional custom height (e.g. 100% for fullscreen)
+  hudPosition?: 'top' | 'bottom';
+  gaugeSize?: 'standard' | 'large';
 }
 
 // Dark Mode Theme JSON for Google Maps
@@ -87,7 +89,9 @@ export const LiveMap: React.FC<LiveMapProps> = ({
   googleMapsApiKey,
   mapProvider,
   theme,
-  height
+  height,
+  hudPosition = 'bottom',
+  gaugeSize = 'standard'
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   
@@ -104,6 +108,9 @@ export const LiveMap: React.FC<LiveMapProps> = ({
   const leafletVehicleMarkerRef = useRef<L.Marker | null>(null);
   const leafletPathPolylineRef = useRef<L.Polyline | null>(null);
   const leafletAlertMarkersRef = useRef<L.CircleMarker[]>([]);
+
+  // Centering lock state
+  const [isMapCentered, setIsMapCentered] = useState(true);
 
   // Handle switching map provider (destroy previous instances)
   const destroyMaps = () => {
@@ -127,6 +134,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
   // Trigger cleanup when provider or theme changes
   useEffect(() => {
     destroyMaps();
+    setIsMapCentered(true);
   }, [mapProvider, theme]);
 
   // Clean up on component unmount
@@ -175,100 +183,113 @@ export const LiveMap: React.FC<LiveMapProps> = ({
 
     if (mapProvider === 'google') {
       // --- GOOGLE MAPS ENGINE ---
-      if (!isGoogleMapsScriptLoaded || !(window as any).google) return;
-      const google = (window as any).google;
+      try {
+        if (!isGoogleMapsScriptLoaded || !(window as any).google) return;
+        const google = (window as any).google;
 
-      // Initialize map instance if not loaded
-      if (!googleMapInstanceRef.current) {
-        const mapOptions = {
-          center: { lat: currentCoords.lat, lng: currentCoords.lng },
-          zoom: 16,
-          minZoom: 12, // Prevent zooming out past city/neighborhood level
-          maxZoom: 20, // Prevent zooming in past street/building level
-          styles: theme === 'light' ? [] : GOOGLE_MAPS_DARK_THEME,
-          disableDefaultUI: true,
-          zoomControl: false
-        };
+        // Initialize map instance if not loaded
+        if (!googleMapInstanceRef.current) {
+          const mapOptions = {
+            center: { lat: currentCoords.lat, lng: currentCoords.lng },
+            zoom: 16,
+            minZoom: 12, // Prevent zooming out past city/neighborhood level
+            maxZoom: 20, // Prevent zooming in past street/building level
+            styles: theme === 'light' ? [] : GOOGLE_MAPS_DARK_THEME,
+            disableDefaultUI: true,
+            zoomControl: false
+          };
 
-        const map = new google.maps.Map(mapContainerRef.current, mapOptions);
-        googleMapInstanceRef.current = map;
+          const map = new google.maps.Map(mapContainerRef.current, mapOptions);
+          googleMapInstanceRef.current = map;
 
-        // Vehicle Icon Symbol
-        const vehicleIcon = {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: '#00e5ff',
-          fillOpacity: 1,
-          strokeColor: '#ffffff',
-          strokeWeight: 2
-        };
+          // Add manual drag detector
+          map.addListener('dragstart', () => {
+            setIsMapCentered(false);
+          });
 
-        googleVehicleMarkerRef.current = new google.maps.Marker({
-          position: { lat: currentCoords.lat, lng: currentCoords.lng },
-          map: map,
-          icon: vehicleIcon,
-          title: 'Current Position'
-        });
-
-        // Path / Breadcrumb Line
-        googlePathPolylineRef.current = new google.maps.Polyline({
-          path: path.map(p => ({ lat: p.lat, lng: p.lng })),
-          geodesic: true,
-          strokeColor: '#00ff66',
-          strokeOpacity: 0.8,
-          strokeWeight: 4,
-          map: map
-        });
-      }
-
-      // Update google map updates
-      const map = googleMapInstanceRef.current;
-      const pos = { lat: currentCoords.lat, lng: currentCoords.lng };
-      map.panTo(pos);
-
-      // Rotate/Update Vehicle Marker
-      if (googleVehicleMarkerRef.current) {
-        googleVehicleMarkerRef.current.setPosition(pos);
-        if (currentCoords.heading !== null) {
-          const rotationIcon = {
-            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-            scale: 6,
+          // Vehicle Icon Symbol
+          const vehicleIcon = {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 8,
             fillColor: '#00e5ff',
             fillOpacity: 1,
             strokeColor: '#ffffff',
-            strokeWeight: 1.5,
-            rotation: currentCoords.heading
+            strokeWeight: 2
           };
-          googleVehicleMarkerRef.current.setIcon(rotationIcon);
+
+          googleVehicleMarkerRef.current = new google.maps.Marker({
+            position: { lat: currentCoords.lat, lng: currentCoords.lng },
+            map: map,
+            icon: vehicleIcon,
+            title: 'Current Position'
+          });
+
+          // Path / Breadcrumb Line
+          googlePathPolylineRef.current = new google.maps.Polyline({
+            path: path.map(p => ({ lat: p.lat, lng: p.lng })),
+            geodesic: true,
+            strokeColor: '#00ff66',
+            strokeOpacity: 0.8,
+            strokeWeight: 4,
+            map: map
+          });
         }
+
+        // Update google map updates
+        const map = googleMapInstanceRef.current;
+        if (map) {
+          const pos = { lat: currentCoords.lat, lng: currentCoords.lng };
+          if (isMapCentered) {
+            map.panTo(pos);
+          }
+
+          // Rotate/Update Vehicle Marker
+          if (googleVehicleMarkerRef.current) {
+            googleVehicleMarkerRef.current.setPosition(pos);
+            if (currentCoords.heading !== null) {
+              const rotationIcon = {
+                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                scale: 6,
+                fillColor: '#00e5ff',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 1.5,
+                rotation: currentCoords.heading
+              };
+              googleVehicleMarkerRef.current.setIcon(rotationIcon);
+            }
+          }
+
+          // Update Trail Line
+          if (googlePathPolylineRef.current) {
+            googlePathPolylineRef.current.setPath(path.map(p => ({ lat: p.lat, lng: p.lng })));
+          }
+
+          // Refresh camera markers
+          googleAlertMarkersRef.current.forEach(marker => marker.setMap(null));
+          googleAlertMarkersRef.current = [];
+
+          activeAlerts.forEach(alert => {
+            const marker = new google.maps.Marker({
+              position: { lat: alert.lat, lng: alert.lng },
+              map: map,
+              icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 9,
+                fillColor: alert.type.includes('camera') ? '#ff0055' : '#ff9f00',
+                fillOpacity: 0.9,
+                strokeColor: '#ffffff',
+                strokeWeight: 1.5
+              },
+              title: alert.description
+            });
+            googleAlertMarkersRef.current.push(marker);
+          });
+        }
+      } catch (e) {
+        console.error("Failed executing Google Maps logic:", e);
+        setGoogleLoadError(true);
       }
-
-      // Update Trail Line
-      if (googlePathPolylineRef.current) {
-        googlePathPolylineRef.current.setPath(path.map(p => ({ lat: p.lat, lng: p.lng })));
-      }
-
-      // Refresh camera markers
-      googleAlertMarkersRef.current.forEach(marker => marker.setMap(null));
-      googleAlertMarkersRef.current = [];
-
-      activeAlerts.forEach(alert => {
-        const marker = new google.maps.Marker({
-          position: { lat: alert.lat, lng: alert.lng },
-          map: map,
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 9,
-            fillColor: alert.type.includes('camera') ? '#ff0055' : '#ff9f00',
-            fillOpacity: 0.9,
-            strokeColor: '#ffffff',
-            strokeWeight: 1.5
-          },
-          title: alert.description
-        });
-        googleAlertMarkersRef.current.push(marker);
-      });
-
     } else {
       // --- OPENSTREETMAP (LEAFLET) ENGINE ---
       if (!leafletMapInstanceRef.current) {
@@ -283,6 +304,11 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         }).setView([currentCoords.lat, currentCoords.lng], 16);
 
         leafletMapInstanceRef.current = map;
+
+        // Detect manual movement
+        map.on('dragstart', () => {
+          setIsMapCentered(false);
+        });
 
         // Load Clean Tiles (CartoDB Light/Dark)
         const tileUrl = theme === 'light'
@@ -329,7 +355,9 @@ export const LiveMap: React.FC<LiveMapProps> = ({
 
       // Update OSM Map center dynamically
       const map = leafletMapInstanceRef.current;
-      map.panTo([currentCoords.lat, currentCoords.lng]);
+      if (isMapCentered) {
+        map.panTo([currentCoords.lat, currentCoords.lng]);
+      }
 
       // Update Vehicle Marker Pos & Heading
       if (leafletVehicleMarkerRef.current) {
@@ -385,10 +413,25 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         leafletAlertMarkersRef.current.push(marker as any);
       });
     }
-  }, [currentCoords, path, activeAlerts, mapProvider, isGoogleMapsScriptLoaded, theme]);
+  }, [currentCoords, path, activeAlerts, mapProvider, isGoogleMapsScriptLoaded, theme, isMapCentered]);
 
   // Display Fallback setup if Google Maps is chosen but Key is missing
   const showGoogleError = mapProvider === 'google' && (!googleMapsApiKey || googleLoadError);
+
+  const handleReCenter = () => {
+    setIsMapCentered(true);
+    if (mapProvider === 'google' && googleMapInstanceRef.current) {
+      googleMapInstanceRef.current.panTo({ lat: currentCoords.lat, lng: currentCoords.lng });
+    } else if (mapProvider === 'osm' && leafletMapInstanceRef.current) {
+      leafletMapInstanceRef.current.panTo([currentCoords.lat, currentCoords.lng]);
+    }
+  };
+
+  const reCenterContainerStyle: React.CSSProperties = hudPosition === 'top' 
+    ? { top: gaugeSize === 'large' ? '166px' : '146px' }
+    : { bottom: gaugeSize === 'large' ? '330px' : '270px' };
+
+  const reCenterMarginLeft = '0px';
 
   return (
     <div 
@@ -397,6 +440,49 @@ export const LiveMap: React.FC<LiveMapProps> = ({
     >
       {/* Target Mount Div for Google/OSM Map frameworks */}
       <div ref={mapContainerRef} style={{ width: '100%', height: '100%', zIndex: 1 }} />
+
+      {/* Re-center Button Wrapper */}
+      {!isMapCentered && (
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 'calc(100% - 24px)',
+            maxWidth: gaugeSize === 'large' ? '700px' : '550px',
+            pointerEvents: 'none',
+            zIndex: 20,
+            display: 'flex',
+            justifyContent: 'flex-start',
+            ...reCenterContainerStyle
+          }}
+        >
+          <button 
+            className="btn btn-outline"
+            onClick={handleReCenter}
+            style={{
+              pointerEvents: 'auto',
+              padding: '10px 18px',
+              fontSize: '0.85rem',
+              borderRadius: '10px',
+              background: 'var(--bg-card-glass)',
+              backdropFilter: 'blur(8px)',
+              marginLeft: reCenterMarginLeft,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.8px'
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--neon-cyan)', display: 'inline-block' }}>
+              <polygon points="3 11 22 2 13 21 11 13 3 11" />
+            </svg>
+            Re-Center
+          </button>
+        </div>
+      )}
 
       {/* Badge indicators */}
       <div className="map-badge" style={{ zIndex: 5 }}>

@@ -17,6 +17,7 @@ export function useGPS(isSimulationActive: boolean) {
   const [distance, setDistance] = useState(0); // in km
   const [maxSpeed, setMaxSpeed] = useState(0); // in km/h
   const [duration, setDuration] = useState(0); // in seconds
+  const [isPaused, setIsPaused] = useState(false);
   
   // Ref tracking to avoid stale state in callbacks
   const pathRef = useRef<GPSCoords[]>([]);
@@ -38,7 +39,7 @@ export function useGPS(isSimulationActive: boolean) {
 
   // Duration Timer
   useEffect(() => {
-    if (isRecording) {
+    if (isRecording && !isPaused) {
       timerRef.current = window.setInterval(() => {
         setDuration(prev => prev + 1);
       }, 1000);
@@ -51,13 +52,13 @@ export function useGPS(isSimulationActive: boolean) {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isRecording]);
+  }, [isRecording, isPaused]);
 
   // Main Tracking Effect
   useEffect(() => {
     if (isSimulationActive) {
       // Simulation Loop
-      if (!isRecording) return;
+      if (!isRecording || isPaused) return;
 
       const simInterval = setInterval(() => {
         const route = simRouteRef.current;
@@ -103,7 +104,7 @@ export function useGPS(isSimulationActive: boolean) {
       return () => clearInterval(simInterval);
     } else {
       // Real Geolocation
-      if (!isRecording) return;
+      if (!isRecording || isPaused) return;
 
       const handleGPSUpdate = (position: GeolocationPosition) => {
         const { latitude, longitude, speed: rawSpeed, altitude, heading } = position.coords;
@@ -189,10 +190,11 @@ export function useGPS(isSimulationActive: boolean) {
         }
       };
     }
-  }, [isRecording, isSimulationActive, maxSpeed]);
+  }, [isRecording, isPaused, isSimulationActive, maxSpeed]);
 
   const startTrip = () => {
     setIsRecording(true);
+    setIsPaused(false);
     setPath([]);
     pathRef.current = [];
     setDistance(0);
@@ -206,6 +208,7 @@ export function useGPS(isSimulationActive: boolean) {
 
   const stopTrip = (): { path: GPSCoords[]; distance: number; maxSpeed: number; duration: number } => {
     setIsRecording(false);
+    setIsPaused(false);
     if (watchIdRef.current !== null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
@@ -220,6 +223,7 @@ export function useGPS(isSimulationActive: boolean) {
 
   const resetTrip = () => {
     setIsRecording(false);
+    setIsPaused(false);
     setPath([]);
     pathRef.current = [];
     setDistance(0);
@@ -229,11 +233,24 @@ export function useGPS(isSimulationActive: boolean) {
     simIndexRef.current = 0;
   };
 
+  const pauseTrip = () => {
+    if (isRecording) {
+      setIsPaused(true);
+    }
+  };
+
+  const resumeTrip = () => {
+    if (isRecording) {
+      setIsPaused(false);
+    }
+  };
+
   const avgSpeed = duration > 0 ? (distance / (duration / 3600)) : 0;
 
   return {
     currentCoords,
     isRecording,
+    isPaused,
     path,
     distance,
     maxSpeed,
@@ -241,6 +258,8 @@ export function useGPS(isSimulationActive: boolean) {
     duration,
     startTrip,
     stopTrip,
-    resetTrip
+    resetTrip,
+    pauseTrip,
+    resumeTrip
   };
 }

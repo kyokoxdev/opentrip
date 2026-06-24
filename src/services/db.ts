@@ -1,9 +1,10 @@
 import { Trip, AppSettings } from '../types';
 
 const DB_NAME = 'OpenTripDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const TRIPS_STORE = 'trips';
 const SETTINGS_STORE = 'settings';
+const PROFILES_STORE = 'profiles';
 
 export function initDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -25,6 +26,9 @@ export function initDB(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
         db.createObjectStore(SETTINGS_STORE);
+      }
+      if (!db.objectStoreNames.contains(PROFILES_STORE)) {
+        db.createObjectStore(PROFILES_STORE, { keyPath: 'name' });
       }
     };
   });
@@ -78,7 +82,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   googleMapsApiKey: '',
   soundAlerts: true,
   cameraRadius: 500,
-  gForceCalibratedOffset: { x: 0, y: 0 }
+  gForceCalibratedOffset: { x: 0, y: 0 },
+  userProfile: null
 };
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
@@ -112,4 +117,40 @@ export async function getSettings(): Promise<AppSettings> {
     console.error('Error loading settings from DB, returning defaults:', error);
     return DEFAULT_SETTINGS;
   }
+}
+
+export async function saveProfile(profile: any): Promise<void> {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(PROFILES_STORE, 'readwrite');
+    const store = transaction.objectStore(PROFILES_STORE);
+    const request = store.put(profile);
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function getProfiles(): Promise<any[]> {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(PROFILES_STORE, 'readonly');
+    const store = transaction.objectStore(PROFILES_STORE);
+    const request = store.getAll();
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function deleteProfile(name: string): Promise<void> {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(PROFILES_STORE, 'readwrite');
+    const store = transaction.objectStore(PROFILES_STORE);
+    const request = store.delete(name);
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
 }

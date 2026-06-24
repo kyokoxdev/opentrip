@@ -6,13 +6,17 @@ interface GForceMeterProps {
   maxG: { lat: number; acc: number; brk: number };
   onCalibrate: () => void;
   compact?: boolean;
+  gaugeSize?: 'standard' | 'large';
 }
 
-export const GForceMeter: React.FC<GForceMeterProps> = ({ gForce, maxG, onCalibrate, compact }) => {
+export const GForceMeter: React.FC<GForceMeterProps> = ({ gForce, maxG, onCalibrate, compact, gaugeSize }) => {
   const maxScaleG = 1.0;
   
   if (compact) {
-    const compactRadius = 32; // smaller radius
+    const compactRadius = gaugeSize === 'large' ? 42 : 32;
+    const containerSize = gaugeSize === 'large' ? 100 : 76;
+    const centerVal = containerSize / 2;
+    
     const compX = Math.max(-compactRadius, Math.min(compactRadius, (gForce.x / maxScaleG) * compactRadius));
     const compY = Math.max(-compactRadius, Math.min(compactRadius, (gForce.y / maxScaleG) * compactRadius));
 
@@ -20,8 +24,8 @@ export const GForceMeter: React.FC<GForceMeterProps> = ({ gForce, maxG, onCalibr
       <div 
         style={{ 
           position: 'relative', 
-          width: '76px', 
-          height: '76px', 
+          width: `${containerSize}px`, 
+          height: `${containerSize}px`, 
           borderRadius: '50%',
           border: '1px solid var(--border-glass)',
           background: 'var(--g-bubble-bg)',
@@ -34,18 +38,18 @@ export const GForceMeter: React.FC<GForceMeterProps> = ({ gForce, maxG, onCalibr
         onClick={onCalibrate}
         title="G-Force Meter (Tap to Reset Zero)"
       >
-        <svg width="76" height="76" style={{ pointerEvents: 'none' }}>
-          <circle cx="38" cy="38" r="32" fill="none" stroke="var(--g-grid-outer)" strokeWidth="0.8" />
-          <circle cx="38" cy="38" r="16" fill="none" stroke="var(--g-grid-inner)" strokeWidth="0.5" strokeDasharray="1.5 1.5" />
-          <line x1="38" y1="4" x2="38" y2="72" stroke="var(--g-grid-inner)" strokeWidth="0.5" />
-          <line x1="4" y1="38" x2="72" y2="38" stroke="var(--g-grid-inner)" strokeWidth="0.5" />
+        <svg width={containerSize} height={containerSize} style={{ pointerEvents: 'none' }}>
+          <circle cx={centerVal} cy={centerVal} r={compactRadius} fill="none" stroke="var(--g-grid-outer)" strokeWidth="0.8" />
+          <circle cx={centerVal} cy={centerVal} r={compactRadius / 2} fill="none" stroke="var(--g-grid-inner)" strokeWidth="0.5" strokeDasharray="1.5 1.5" />
+          <line x1={centerVal} y1="4" x2={centerVal} y2={containerSize - 4} stroke="var(--g-grid-inner)" strokeWidth="0.5" />
+          <line x1="4" y1={centerVal} x2={containerSize - 4} y2={centerVal} stroke="var(--g-grid-inner)" strokeWidth="0.5" />
         </svg>
         {/* Compact Bubble */}
         <div 
           style={{
             position: 'absolute',
-            width: '8px',
-            height: '8px',
+            width: gaugeSize === 'large' ? '10px' : '8px',
+            height: gaugeSize === 'large' ? '10px' : '8px',
             borderRadius: '50%',
             backgroundColor: 'var(--neon-green)',
             boxShadow: '0 0 6px var(--neon-green)',
@@ -60,7 +64,7 @@ export const GForceMeter: React.FC<GForceMeterProps> = ({ gForce, maxG, onCalibr
           style={{ 
             position: 'absolute', 
             bottom: '2px', 
-            fontSize: '0.55rem', 
+            fontSize: gaugeSize === 'large' ? '0.65rem' : '0.55rem', 
             fontFamily: 'var(--mono-font)', 
             color: 'var(--text-secondary)',
             fontWeight: 'bold',

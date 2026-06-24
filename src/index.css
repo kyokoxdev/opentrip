@@ -20,6 +20,7 @@
   --neon-orange: #ff9f00;
   --neon-red: #ff0055;
   --neon-purple: #bd00ff;
+  --neon-white: #ffffff;
   
   /* Text Colors */
   --text-primary: #ffffff;
@@ -53,6 +54,7 @@
   --glow-orange: 0 0 15px rgba(255, 159, 0, 0.4);
   --glow-red: 0 0 15px rgba(255, 0, 85, 0.4);
   --glow-purple: 0 0 15px rgba(189, 0, 255, 0.4);
+  --glow-white: 0 0 15px rgba(255, 255, 255, 0.4);
   
   --sans-font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --gauge-font: 'Rajdhani', var(--sans-font);
@@ -81,6 +83,7 @@
   --neon-orange: #ea580c;      /* Rich Deep Orange */
   --neon-red: #dc2626;         /* Crimson Red */
   --neon-purple: #7c3aed;      /* Deep Purple */
+  --neon-white: #0f172a;       /* Slate-900 for daylight contrast */
   
   /* Text Colors */
   --text-primary: #0f172a;     /* Slate-900 */
@@ -114,6 +117,7 @@
   --glow-orange: 0 4px 15px rgba(234, 88, 12, 0.12);
   --glow-red: 0 4px 15px rgba(220, 38, 38, 0.12);
   --glow-purple: 0 4px 15px rgba(124, 58, 237, 0.12);
+  --glow-white: 0 4px 15px rgba(15, 23, 42, 0.12);
 }
 
 /* Light Mode element overrides */
@@ -177,6 +181,7 @@ body {
   max-width: 600px; /* Centered mobile container on desktop */
   margin: 0 auto;
   background-color: var(--bg-deep);
+  color: var(--text-primary);
   border-left: 1px solid var(--border-dim);
   border-right: 1px solid var(--border-dim);
   position: relative;
@@ -207,6 +212,7 @@ h2, h3, h4 {
   font-family: var(--gauge-font);
   font-weight: 600;
   letter-spacing: 0.5px;
+  color: var(--text-primary);
 }
 
 .text-mono {
@@ -243,6 +249,21 @@ h2, h3, h4 {
 .card-glowing-red {
   border-color: rgba(255, 0, 85, 0.25);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 0, 85, 0.05);
+}
+.card-glowing-orange {
+  border-color: rgba(255, 159, 0, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 159, 0, 0.05);
+}
+.card-glowing-purple {
+  border-color: rgba(189, 0, 255, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), 0 0 15px rgba(189, 0, 255, 0.05);
+}
+.card-glowing-white {
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), var(--glow-white);
+}
+#root.light-theme .card-glowing-white {
+  border-color: rgba(15, 23, 42, 0.15);
 }
 
 /* Custom UI Grid Layouts */
@@ -510,6 +531,7 @@ h2, h3, h4 {
   right: 12px;
   background: rgba(0, 0, 0, 0.8);
   border: 1px solid var(--border-dim);
+  color: #ffffff;
   padding: 6px 12px;
   border-radius: 12px;
   font-size: 0.8rem;
@@ -566,4 +588,26 @@ input:checked + .slider {
 
 input:checked + .slider:before {
   transform: translateX(22px);
+}
+
+/* Tab Panel Switch Animations & Layout */
+.tab-pane {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 72px; /* Offset to clear the bottom navigation bar */
+  opacity: 0;
+  transform: scale(0.98) translateY(8px);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.tab-pane.active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+  visibility: visible;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.25s cubic-bezier(0.34, 1.15, 0.64, 1);
 }
