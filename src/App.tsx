@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { AppSettings, Trip, TelemetryLog, UserProfile } from './types';
 import { initDB, getTrips, saveTrip, deleteTrip, getSettings, saveSettings, saveProfile, getProfiles } from './services/db';
 import { useGPS } from './hooks/useGPS';
@@ -309,7 +309,9 @@ function App() {
   };
 
   // Filter trips dynamically per driver profile
-  const filteredTripsList = tripsList.filter(t => !t.driverName || t.driverName === settings.userProfile?.name);
+  const filteredTripsList = useMemo(() => {
+    return tripsList.filter(t => !t.driverName || t.driverName === settings.userProfile?.name);
+  }, [tripsList, settings.userProfile?.name]);
 
   // Format active trip distance
   const isImperial = settings.units === 'imperial';
@@ -378,6 +380,35 @@ function App() {
             hudPosition={settings.hudPosition}
             gaugeSize={settings.gaugeSize}
           />
+
+          {gps.gpsError && !isSimActive && (
+            <div style={{
+              position: 'absolute',
+              top: settings.hudPosition === 'top' ? '140px' : '20px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 'calc(100% - 32px)',
+              maxWidth: '500px',
+              background: 'rgba(255, 0, 85, 0.95)',
+              backdropFilter: 'blur(8px)',
+              border: '1.5px solid var(--neon-red)',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              color: '#ffffff',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              boxShadow: '0 0 15px rgba(255, 0, 85, 0.4)',
+              zIndex: 100,
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}>
+              <span style={{ fontSize: '1.1rem' }}>⚠️</span>
+              <span>{gps.gpsError}</span>
+            </div>
+          )}
 
           {/* Top Floating Glass HUD (Conditional) */}
           {settings.hudPosition === 'top' && (

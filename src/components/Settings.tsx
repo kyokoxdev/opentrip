@@ -187,17 +187,14 @@ export const Settings: React.FC<SettingsProps> = ({
             <label className="form-label" style={{ margin: 0 }}>Sound Alerts</label>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Audio warning beeps on camera approach</span>
           </div>
-          <input
-            type="checkbox"
-            checked={sound}
-            onChange={(e) => setSound(e.target.checked)}
-            style={{
-              width: '44px',
-              height: '24px',
-              cursor: 'pointer',
-              accentColor: 'var(--neon-cyan)'
-            }}
-          />
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={sound}
+              onChange={(e) => setSound(e.target.checked)}
+            />
+            <span className="slider"></span>
+          </label>
         </div>
 
         {/* Warning Radius */}

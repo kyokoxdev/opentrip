@@ -201,7 +201,11 @@ export const ProfileLogin: React.FC<ProfileLoginProps> = ({ onLogin, onCreateNew
                     <div style={{
                       width: '40px',
                       height: '40px',
+                      minWidth: '40px',
+                      minHeight: '40px',
                       borderRadius: '50%',
+                      flexShrink: 0,
+                      aspectRatio: '1 / 1',
                       background: 'rgba(255, 255, 255, 0.05)',
                       border: '1px solid var(--border-dim)',
                       backgroundImage: profile.avatarUrl && profile.avatarUrl !== DEFAULT_AVATAR ? `url(${profile.avatarUrl})` : 'none',

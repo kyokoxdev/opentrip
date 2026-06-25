@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { CameraAlert, GPSCoords, AppSettings } from '../types';
-import { getMockCamerasAround, getDistanceInMeters } from '../services/mockData';
+import { getDistanceInMeters } from '../services/mockData';
+import { fetchOSMAlerts } from '../services/osm';
 
 // Custom Web Audio API synthesizer for warning sounds (no file assets needed)
 function synthWarningSound(type: 'warning' | 'alert') {
@@ -55,16 +56,16 @@ export function useCameraAlerts(
 ) {
   const [activeAlerts, setActiveAlerts] = useState<CameraAlert[]>([]);
   const [closestAlert, setClosestAlert] = useState<CameraAlert | null>(null);
+  const [cameras, setCameras] = useState<CameraAlert[]>([]);
   
-  const camerasRef = useRef<CameraAlert[]>([]);
   const lastCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
   const playCooldownRef = useRef<{ [key: string]: number }>({});
 
-  // Reload local mock speed cameras/signals whenever coordinate shifts significantly
+  // Reload speed cameras/signals whenever coordinate shifts significantly
   useEffect(() => {
     if (!isRecording) {
-      setActiveAlerts([]);
-      setClosestAlert(null);
+      setCameras([]);
+      lastCoordsRef.current = null;
       return;
     }
 
@@ -87,12 +88,30 @@ export function useCameraAlerts(
     }
 
     if (shouldReload) {
-      camerasRef.current = getMockCamerasAround(lat, lng);
       lastCoordsRef.current = { lat, lng };
+      
+      fetchOSMAlerts(lat, lng, settings.cameraRadius * 3)
+        .then(alerts => {
+          setCameras(alerts || []);
+        })
+        .catch(err => {
+          console.error('OSM Overpass query failed:', err);
+          setCameras([]);
+        });
+    }
+  }, [currentCoords.lat, currentCoords.lng, isRecording, settings.cameraRadius]);
+
+  // Filter, sort, and display warnings based on current coordinates
+  useEffect(() => {
+    if (!isRecording || cameras.length === 0) {
+      setActiveAlerts([]);
+      setClosestAlert(null);
+      return;
     }
 
-    // Calculate distance to all speed cameras
-    const updatedAlerts = camerasRef.current
+    const { lat, lng } = currentCoords;
+
+    const updatedAlerts = cameras
       .map(cam => {
         const distance = getDistanceInMeters(lat, lng, cam.lat, cam.lng);
         return { ...cam, distance: Math.round(distance) };
@@ -125,7 +144,7 @@ export function useCameraAlerts(
     } else {
       setClosestAlert(null);
     }
-  }, [currentCoords, isRecording, settings.cameraRadius, settings.soundAlerts]);
+  }, [currentCoords, isRecording, cameras, settings.cameraRadius, settings.soundAlerts]);
 
   return { activeAlerts, closestAlert };
 }

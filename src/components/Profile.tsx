@@ -715,7 +715,11 @@ export const Profile: React.FC<ProfileProps> = ({
             style={{ 
               width: '68px', 
               height: '68px', 
+              minWidth: '68px',
+              minHeight: '68px',
               borderRadius: '50%', 
+              flexShrink: 0,
+              aspectRatio: '1 / 1',
               background: `radial-gradient(circle, ${currentVehicle.color}40 0%, ${currentVehicle.color}10 100%)`, 
               border: `2px solid ${currentVehicle.color}`,
               boxShadow: `0 0 15px ${currentVehicle.color}30`,
@@ -788,7 +792,7 @@ export const Profile: React.FC<ProfileProps> = ({
         </div>
 
         {/* Global Summary Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', borderTop: '1px solid var(--border-dim)', paddingTop: '14px', textAlign: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px', borderTop: '1px solid var(--border-dim)', paddingTop: '14px', textAlign: 'center' }}>
           <div>
             <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Total Runs</div>
             <div style={{ fontSize: '1.25rem', fontWeight: 700, fontFamily: 'var(--gauge-font)', color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -812,7 +816,7 @@ export const Profile: React.FC<ProfileProps> = ({
       </div>
 
       {/* All-Time Trophies Records */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px' }}>
         {/* Speed Trophy */}
         <div className="card" style={{ padding: '10px', textAlign: 'center', margin: 0, borderColor: 'rgba(0, 229, 255, 0.15)' }}>
           <Trophy size={18} style={{ color: 'var(--neon-cyan)', filter: 'drop-shadow(0 0 4px rgba(0, 229, 255, 0.4))' }} />
@@ -914,7 +918,7 @@ export const Profile: React.FC<ProfileProps> = ({
         </div>
 
         {/* Carousel Outer Viewport */}
-        <div style={{ position: 'relative', width: '100%', overflow: 'hidden', padding: '12px 0', margin: '-12px 0' }}>
+        <div style={{ position: 'relative', width: '100%', overflow: 'hidden', padding: '12px 0' }}>
           <div
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -947,7 +951,7 @@ export const Profile: React.FC<ProfileProps> = ({
                     width: '100%', 
                     flexShrink: 0, 
                     boxSizing: 'border-box', 
-                    padding: '0 16px'
+                    padding: 0
                   }}
                 >
                   {isEditing ? (
@@ -1257,15 +1261,26 @@ export const Profile: React.FC<ProfileProps> = ({
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>
                       
                       {/* Vehicle Image block */}
-                      <div style={{ position: 'relative', height: '180px', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-dim)', boxShadow: '0 4px 14px rgba(0,0,0,0.3)' }}>
+                      <div style={{ 
+                        position: 'relative', 
+                        height: '180px', 
+                        width: '100%', 
+                        borderRadius: '12px', 
+                        overflow: 'hidden', 
+                        border: '1px solid var(--border-dim)', 
+                        boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+                        background: 'rgba(255, 255, 255, 0.02)'
+                      }}>
                         <div 
                           style={{ 
                             height: '100%', 
                             width: '100%', 
                             backgroundImage: `url(${primaryImage})`, 
-                            backgroundSize: 'cover', 
+                            backgroundSize: primaryImage === DEFAULT_VEHICLE_IMAGE ? '64px' : 'cover', 
+                            backgroundRepeat: 'no-repeat',
                             backgroundPosition: 'center',
-                            transition: 'background-image 0.25s ease'
+                            transition: 'background-image 0.25s ease',
+                            opacity: primaryImage === DEFAULT_VEHICLE_IMAGE ? 0.35 : 1
                           }} 
                         />
                         
@@ -1334,23 +1349,23 @@ export const Profile: React.FC<ProfileProps> = ({
                       </div>
 
                       {/* Telemetry preset categories cards */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '8px' }}>
                         <div style={{ padding: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-dim)', borderRadius: '8px', textAlign: 'center' }}>
-                          <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Classification</div>
+                          <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Classification</div>
                           <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {getSpecificVehicleLabel(vh.type || 'car', vh.specificVehicle || 'sedan')}
                           </div>
                         </div>
 
                         <div style={{ padding: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-dim)', borderRadius: '8px', textAlign: 'center' }}>
-                          <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Power Unit</div>
-                          <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
+                          <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Power Unit</div>
+                          <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {FUEL_LABELS[vh.fuelType as keyof typeof FUEL_LABELS] || vh.fuelType}
                           </div>
                         </div>
 
                         <div style={{ padding: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-dim)', borderRadius: '8px', textAlign: 'center' }}>
-                          <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Registration</div>
+                          <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Registration</div>
                           <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {vh.licensePlate || 'N/A'}
                           </div>
@@ -1358,7 +1373,7 @@ export const Profile: React.FC<ProfileProps> = ({
                       </div>
 
                       {/* Technical specifications */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '8px' }}>
                         {vh.engineDisplacement && (
                           <div style={{ padding: '8px 12px', background: 'rgba(255,255,255,0.01)', border: '1px solid var(--border-dim)', borderRadius: '8px' }}>
                             <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Engine / Motor</div>
@@ -1440,7 +1455,7 @@ export const Profile: React.FC<ProfileProps> = ({
             })}
 
             {/* Slide Card: Add Another Ride (or inline add form) */}
-            <div style={{ width: '100%', flexShrink: 0, boxSizing: 'border-box', padding: '0 16px' }}>
+            <div style={{ width: '100%', flexShrink: 0, boxSizing: 'border-box', padding: 0 }}>
               {isAddingVehicle ? (
                 /* Inline Add Form */
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left' }}>

@@ -214,8 +214,12 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
   const triggerAvatarInput = () => fileInputRef.current?.click();
   const triggerVehicleImageInput = () => vehicleImageInputRef.current?.click();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (currentStep < 4) {
+      handleNextStep();
+      return;
+    }
     if (!name.trim()) {
       setErrorMsg('Please enter a driver name to compile your telemetry card.');
       return;
@@ -293,31 +297,55 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
       { num: 4, label: 'Specs' }
     ];
 
+    const progressPercent = ((currentStep - 1) / (steps.length - 1)) * 100;
+
     return (
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', position: 'relative' }}>
-        {steps.map((s, idx) => {
-          const isActive = currentStep === s.num;
-          const isCompleted = currentStep > s.num;
-          return (
-            <React.Fragment key={s.num}>
-              {idx > 0 && (
-                <div style={{
-                  flex: 1,
-                  height: '2px',
-                  background: isCompleted ? 'var(--neon-cyan)' : 'var(--border-dim)',
-                  boxShadow: isCompleted ? 'var(--glow-cyan)' : 'none',
-                  margin: '0 8px',
-                  marginTop: '-16px',
-                  transition: 'background 0.3s ease'
-                }} />
-              )}
+      <div style={{ position: 'relative', height: '48px', marginBottom: '16px', padding: '0 10px' }}>
+        {/* Background Track Line */}
+        <div style={{
+          position: 'absolute',
+          top: '14px',
+          left: '20px',
+          right: '20px',
+          height: '2px',
+          background: 'var(--border-dim)',
+          zIndex: 1
+        }} />
+        
+        {/* Active Progress Line */}
+        <div style={{
+          position: 'absolute',
+          top: '14px',
+          left: '20px',
+          width: `calc(${progressPercent}% - 0px)`,
+          height: '2px',
+          background: 'var(--neon-cyan)',
+          boxShadow: 'var(--glow-cyan)',
+          transition: 'width 0.3s ease',
+          zIndex: 2
+        }} />
+
+        {/* Steps Circles & Labels Container */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          position: 'relative',
+          zIndex: 3
+        }}>
+          {steps.map((s) => {
+            const isActive = currentStep === s.num;
+            const isCompleted = currentStep > s.num;
+            return (
               <div 
+                key={s.num}
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '4px',
-                  cursor: isCompleted ? 'pointer' : 'default'
+                  gap: '6px',
+                  cursor: isCompleted ? 'pointer' : 'default',
+                  width: '60px'
                 }}
                 onClick={() => {
                   if (isCompleted) {
@@ -344,26 +372,28 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
                   {s.num}
                 </div>
                 <span style={{
-                  fontSize: '0.65rem',
+                  fontSize: '0.62rem',
                   fontWeight: isActive || isCompleted ? 'bold' : 'normal',
                   color: isActive ? 'var(--neon-cyan)' : 'var(--text-muted)',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
+                  letterSpacing: '0.5px',
+                  textAlign: 'center',
+                  whiteSpace: 'nowrap'
                 }}>
                   {s.label}
                 </span>
               </div>
-            </React.Fragment>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     );
   };
 
   const renderStep1 = () => (
     <>
-      <h2 style={{ fontSize: '1.2rem', textTransform: 'uppercase', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-dim)', paddingBottom: '10px' }}>
-        <User size={18} style={{ color: 'var(--neon-cyan)' }} />
+      <h2 style={{ fontSize: '1.1rem', textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-dim)', paddingBottom: '6px' }}>
+        <User size={16} style={{ color: 'var(--neon-cyan)' }} />
         <span>Step 1: Driver Profile Setup</span>
       </h2>
 
@@ -373,9 +403,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
         <div 
           onClick={triggerAvatarInput}
           style={{
-            width: '90px',
-            height: '90px',
+            width: '72px',
+            height: '72px',
+            minWidth: '72px',
+            minHeight: '72px',
             borderRadius: '50%',
+            flexShrink: 0,
+            aspectRatio: '1 / 1',
             border: '2px dashed var(--border-bright)',
             background: 'var(--bg-input)',
             backgroundImage: avatarUrl !== DEFAULT_AVATAR ? `url(${avatarUrl})` : 'none',
@@ -424,18 +458,19 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
 
   const renderStep2 = () => (
     <>
-      <h2 style={{ fontSize: '1.2rem', textTransform: 'uppercase', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-dim)', paddingBottom: '10px' }}>
-        <Car size={18} style={{ color: 'var(--neon-cyan)' }} />
+      <h2 style={{ fontSize: '1.1rem', textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-dim)', paddingBottom: '6px' }}>
+        <Car size={16} style={{ color: 'var(--neon-cyan)' }} />
         <span>Step 2: Select Vehicle Category</span>
       </h2>
 
       {/* Vehicle Category Selector */}
-      <div className="form-group">
+      <div className="form-group" style={{ marginBottom: '12px' }}>
         <label className="form-label">Vehicle Type</label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
           {VEHICLES.map((vh) => {
             const isSelected = vehicleType === vh.type;
             const IconComponent = vh.icon;
+            const isOther = vh.type === 'other';
             return (
               <div
                 key={vh.type}
@@ -443,49 +478,54 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px',
-                  padding: '12px',
-                  borderRadius: '12px',
+                  gap: '8px',
+                  padding: '6px 10px',
+                  borderRadius: '10px',
                   border: '1px solid',
                   borderColor: isSelected ? vh.color : 'var(--border-dim)',
-                  background: isSelected ? 'rgba(255, 255, 255, 0.02)' : 'var(--bg-input)',
+                  background: isSelected ? `${vh.color}15` : 'var(--bg-input)',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
+                  gridColumn: isOther ? 'span 2' : 'span 1',
+                  justifyContent: 'flex-start'
                 }}
               >
                 <div 
                   style={{ 
-                    padding: '8px', 
-                    borderRadius: '8px', 
+                    padding: '6px', 
+                    borderRadius: '6px', 
                     background: isSelected ? vh.color : 'var(--border-bright)',
                     color: isSelected ? '#000000' : 'var(--text-primary)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: isSelected ? vh.glow : 'none'
+                    boxShadow: isSelected ? vh.glow : 'none',
+                    flexShrink: 0
                   }}
                 >
-                  <IconComponent size={20} />
+                  <IconComponent size={14} />
                 </div>
-
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 700, color: isSelected ? vh.color : 'var(--text-primary)' }}>
-                    {vh.name}
-                  </span>
-                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                    {vh.desc}
-                  </span>
-                </div>
-
-                {isSelected && (
-                  <div style={{ color: vh.color }}>
-                    <Check size={18} />
-                  </div>
-                )}
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: isSelected ? vh.color : 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {vh.name}
+                </span>
               </div>
             );
           })}
         </div>
+      </div>
+
+      {/* Selected description display */}
+      <div style={{
+        padding: '6px 10px',
+        borderRadius: '8px',
+        background: 'rgba(255, 255, 255, 0.01)',
+        border: '1px solid var(--border-dim)',
+        fontSize: '0.68rem',
+        color: 'var(--text-secondary)',
+        lineHeight: '1.4',
+        marginBottom: '12px'
+      }}>
+        {VEHICLES.find(v => v.type === vehicleType)?.desc}
       </div>
 
       {/* Specific Model dropdown */}
@@ -509,8 +549,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
 
   const renderStep3 = () => (
     <>
-      <h2 style={{ fontSize: '1.2rem', textTransform: 'uppercase', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-dim)', paddingBottom: '10px' }}>
-        <Wrench size={18} style={{ color: 'var(--neon-cyan)' }} />
+      <h2 style={{ fontSize: '1.1rem', textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-dim)', paddingBottom: '6px' }}>
+        <Wrench size={16} style={{ color: 'var(--neon-cyan)' }} />
         <span>Step 3: Vehicle Identification</span>
       </h2>
 
@@ -592,14 +632,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
 
   const renderStep4 = () => (
     <>
-      <h2 style={{ fontSize: '1.2rem', textTransform: 'uppercase', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-dim)', paddingBottom: '10px' }}>
-        <Camera size={18} style={{ color: 'var(--neon-cyan)' }} />
+      <h2 style={{ fontSize: '1.1rem', textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-dim)', paddingBottom: '6px' }}>
+        <Camera size={16} style={{ color: 'var(--neon-cyan)' }} />
         <span>Step 4: Detailed Specifications & Photos</span>
       </h2>
 
       {/* Detailed Specs: Engine & Dates */}
-      <div style={{ display: 'flex', gap: '12px' }}>
-        <div className="form-group" style={{ flex: 1 }}>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <div className="form-group" style={{ flex: 1, marginBottom: '8px' }}>
           <label className="form-label">Engine / Motor Power</label>
           <input 
             type="text" 
@@ -612,62 +652,56 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '12px' }}>
-        <div className="form-group" style={{ flex: 1 }}>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
+        <div className="form-group" style={{ flex: 1, marginBottom: '8px' }}>
           <label className="form-label">Manufacture Date</label>
           <input 
             type="date" 
             className="input-field" 
             value={vManufactureDate}
             onChange={(e) => setVManufactureDate(e.target.value)}
-            style={{ background: 'var(--bg-input)', color: 'var(--text-primary)', colorScheme: 'dark' }}
+            style={{ background: 'var(--bg-input)', color: 'var(--text-primary)', colorScheme: 'dark', padding: '8px 10px' }}
           />
         </div>
-        <div className="form-group" style={{ flex: 1 }}>
+        <div className="form-group" style={{ flex: 1, marginBottom: '8px' }}>
           <label className="form-label">Purchase Date</label>
           <input 
             type="date" 
             className="input-field" 
             value={vPurchaseDate}
             onChange={(e) => setVPurchaseDate(e.target.value)}
-            style={{ background: 'var(--bg-input)', color: 'var(--text-primary)', colorScheme: 'dark' }}
+            style={{ background: 'var(--bg-input)', color: 'var(--text-primary)', colorScheme: 'dark', padding: '8px 10px' }}
           />
         </div>
       </div>
 
       {/* Vehicle Notes / Specs / Mods */}
-      <div className="form-group">
+      <div className="form-group" style={{ marginBottom: '8px' }}>
         <label className="form-label">Vehicle Notes / Modifications</label>
-        <textarea 
+        <input 
+          type="text"
           className="input-field" 
-          placeholder="Describe modifications, specs, tire compound, or custom notes..."
+          placeholder="Describe modifications, custom notes..."
           value={vNotes}
           onChange={(e) => setVNotes(e.target.value)}
-          rows={3}
-          style={{ 
-            background: 'var(--bg-input)', 
-            color: 'var(--text-primary)',
-            fontFamily: 'inherit',
-            resize: 'vertical',
-            padding: '10px'
-          }}
+          maxLength={100}
         />
       </div>
 
       {/* Vehicle Photos Gallery Uploader */}
-      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '8px' }}>
         <label className="form-label">Vehicle Photos (Up to 5 images)</label>
         
         {vImages.length > 0 ? (
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
             {vImages.map((img, idx) => (
               <div 
                 key={idx}
                 style={{
                   position: 'relative',
-                  width: '100px',
-                  height: '75px',
-                  borderRadius: '8px',
+                  width: '60px',
+                  height: '45px',
+                  borderRadius: '6px',
                   backgroundImage: `url(${img})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
@@ -678,14 +712,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
                 {idx === 0 && (
                   <span style={{
                     position: 'absolute',
-                    bottom: '2px',
-                    left: '2px',
+                    bottom: '1px',
+                    left: '1px',
                     background: 'var(--neon-cyan)',
                     color: '#000',
-                    fontSize: '0.5rem',
+                    fontSize: '0.4rem',
                     fontWeight: 'bold',
-                    padding: '1px 4px',
-                    borderRadius: '4px',
+                    padding: '0 3px',
+                    borderRadius: '2px',
                     textTransform: 'uppercase'
                   }}>
                     Cover
@@ -696,10 +730,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
                   onClick={() => removeVehicleImage(idx)}
                   style={{
                     position: 'absolute',
-                    top: '-6px',
-                    right: '-6px',
-                    width: '20px',
-                    height: '20px',
+                    top: '-4px',
+                    right: '-4px',
+                    width: '16px',
+                    height: '16px',
                     borderRadius: '50%',
                     background: 'var(--neon-red)',
                     color: '#fff',
@@ -707,7 +741,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '10px',
+                    fontSize: '8px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.5)'
@@ -722,9 +756,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
               <div 
                 onClick={triggerVehicleImageInput}
                 style={{
-                  width: '100px',
-                  height: '75px',
-                  borderRadius: '8px',
+                  width: '60px',
+                  height: '45px',
+                  borderRadius: '6px',
                   border: '2px dashed var(--border-bright)',
                   background: 'var(--bg-input)',
                   display: 'flex',
@@ -732,12 +766,12 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  gap: '4px',
+                  gap: '2px',
                   transition: 'all 0.2s ease'
                 }}
               >
-                <Image size={18} style={{ color: 'var(--text-secondary)' }} />
-                <span style={{ fontSize: '0.55rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>+ ADD PHOTO</span>
+                <Image size={14} style={{ color: 'var(--text-secondary)' }} />
+                <span style={{ fontSize: '0.45rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>+ ADD</span>
               </div>
             )}
           </div>
@@ -746,23 +780,22 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
             onClick={triggerVehicleImageInput}
             style={{
               width: '100%',
-              height: '120px',
-              borderRadius: '12px',
+              height: '46px',
+              borderRadius: '8px',
               border: '2px dashed var(--border-bright)',
               background: 'var(--bg-input)',
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              gap: '8px',
+              gap: '6px',
               borderColor: 'var(--border-bright)'
             }}
           >
-            <Camera size={28} style={{ color: 'var(--text-secondary)' }} />
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-              UPLOAD VEHICLE PHOTOS (UP TO 5)
+            <Camera size={16} style={{ color: 'var(--text-secondary)' }} />
+            <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+              UPLOAD PHOTOS (UP TO 5 IMAGES)
             </span>
           </div>
         )}
@@ -785,6 +818,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
         <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
           {onCancel && (
             <button 
+              key="onboarding-cancel-btn"
               type="button" 
               className="btn btn-outline"
               onClick={onCancel}
@@ -794,6 +828,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
             </button>
           )}
           <button 
+            key="onboarding-next-btn-1"
             type="button" 
             className="btn btn-primary"
             onClick={handleNextStep}
@@ -809,6 +844,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
       return (
         <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
           <button 
+            key={`onboarding-back-btn-${currentStep}`}
             type="button" 
             className="btn btn-outline"
             onClick={handlePrevStep}
@@ -817,6 +853,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
             <span>BACK</span>
           </button>
           <button 
+            key={`onboarding-next-btn-${currentStep}`}
             type="button" 
             className="btn btn-primary"
             onClick={handleNextStep}
@@ -831,6 +868,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
     return (
       <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
         <button 
+          key="onboarding-back-btn-4"
           type="button" 
           className="btn btn-outline"
           onClick={handlePrevStep}
@@ -839,8 +877,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
           <span>BACK</span>
         </button>
         <button 
-          type="submit" 
+          key="onboarding-launch-btn"
+          type="button" 
           className="btn btn-primary"
+          onClick={handleSubmit}
           style={{ flex: 2, padding: '14px', borderRadius: '12px' }}
         >
           <span>LAUNCH APPLICATION</span>
@@ -852,29 +892,33 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
   return (
     <div 
       style={{ 
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
         display: 'flex', 
         flexDirection: 'column', 
         justifyContent: 'flex-start', 
         alignItems: 'stretch',
-        height: '100%',
-        minHeight: 0,
-        padding: '24px',
+        padding: '16px',
         textAlign: 'left',
         background: 'linear-gradient(135deg, var(--bg-deep) 0%, #060608 100%)',
-        overflowY: 'auto'
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch'
       }}
     >
-      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '4px', letterSpacing: '3px' }}>OpenTrip</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+      <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+        <h1 style={{ fontSize: '1.8rem', marginBottom: '2px', letterSpacing: '2px' }}>OpenTrip</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: 0 }}>
           Open-Source driving telemetry, G-Force logs & alerts
         </p>
       </div>
 
-      <div className="card card-glowing-cyan" style={{ margin: '0 0 40px 0', padding: '24px' }}>
+      <div className="card card-glowing-cyan" style={{ margin: '0 0 10px 0', padding: '16px' }}>
         {renderStepIndicator()}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}

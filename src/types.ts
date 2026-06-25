@@ -38,7 +38,7 @@ export interface Trip {
 
 export interface CameraAlert {
   id: string;
-  type: 'speed_camera' | 'redlight_camera' | 'traffic_signal' | 'stop_sign';
+  type: 'speed_camera' | 'redlight_camera' | 'traffic_signal' | 'stop_sign' | 'speed_bump';
   lat: number;
   lng: number;
   speedLimit?: number; // in km/h

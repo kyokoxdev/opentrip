@@ -1,6 +1,6 @@
 import React from 'react';
 import { CameraAlert } from '../types';
-import { ShieldAlert, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, AlertTriangle } from 'lucide-react';
 
 interface AlertWidgetProps {
   closestAlert: CameraAlert | null;
@@ -8,41 +8,7 @@ interface AlertWidgetProps {
 
 export const AlertWidget: React.FC<AlertWidgetProps> = ({ closestAlert }) => {
   if (!closestAlert) {
-    return (
-      <div 
-        className="card card-glowing-green" 
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '16px',
-          background: 'var(--alert-bg-safe)'
-        }}
-      >
-        <div 
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            backgroundColor: 'rgba(0, 255, 102, 0.1)',
-            color: 'var(--neon-green)'
-          }}
-        >
-          <ShieldCheck size={22} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <h4 style={{ color: 'var(--neon-green)', textTransform: 'uppercase', fontSize: '0.85rem', letterSpacing: '1px' }}>
-            Road Shield Active
-          </h4>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-            All clear. Monitoring upcoming speed cameras & signals.
-          </p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // Determine severity and colors based on proximity

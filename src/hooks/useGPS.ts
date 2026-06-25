@@ -18,6 +18,7 @@ export function useGPS(isSimulationActive: boolean) {
   const [maxSpeed, setMaxSpeed] = useState(0); // in km/h
   const [duration, setDuration] = useState(0); // in seconds
   const [isPaused, setIsPaused] = useState(false);
+  const [gpsError, setGpsError] = useState<string | null>(null);
   
   // Ref tracking to avoid stale state in callbacks
   const pathRef = useRef<GPSCoords[]>([]);
@@ -26,6 +27,17 @@ export function useGPS(isSimulationActive: boolean) {
   const simRouteRef = useRef<GPSCoords[]>([]);
   const timerRef = useRef<number | null>(null);
   const watchIdRef = useRef<number | null>(null);
+
+  const isRecordingRef = useRef(isRecording);
+  const isPausedRef = useRef(isPaused);
+
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
+
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+  }, [isPaused]);
 
   // Initialize simulation path if simulation is active
   useEffect(() => {
@@ -54,93 +66,97 @@ export function useGPS(isSimulationActive: boolean) {
     };
   }, [isRecording, isPaused]);
 
-  // Main Tracking Effect
+  // 1. Simulation Tracking Effect
   useEffect(() => {
-    if (isSimulationActive) {
-      // Simulation Loop
-      if (!isRecording || isPaused) return;
+    if (!isSimulationActive) return;
+    if (!isRecording || isPaused) return;
 
-      const simInterval = setInterval(() => {
-        const route = simRouteRef.current;
-        const index = simIndexRef.current;
+    const simInterval = setInterval(() => {
+      const route = simRouteRef.current;
+      const index = simIndexRef.current;
 
-        if (index < route.length) {
-          const nextPoint = route[index];
-          
-          // Update Coordinates
-          setCurrentCoords(nextPoint);
-          
-          // Track distance & path
-          if (lastCoordsRef.current) {
-            const stepDistMeters = getDistanceInMeters(
-              lastCoordsRef.current.lat,
-              lastCoordsRef.current.lng,
-              nextPoint.lat,
-              nextPoint.lng
-            );
-            const stepDistKm = stepDistMeters / 1000;
-            setDistance(prev => prev + stepDistKm);
-          }
-
-          setPath(prev => {
-            const nextPath = [...prev, nextPoint];
-            pathRef.current = nextPath;
-            return nextPath;
-          });
-
-          // Max Speed
-          if (nextPoint.speed > maxSpeed) {
-            setMaxSpeed(nextPoint.speed);
-          }
-
-          lastCoordsRef.current = nextPoint;
-          simIndexRef.current = index + 1;
-        } else {
-          // Reset loop if simulation finishes
-          simIndexRef.current = 0;
-        }
-      }, 1000); // simulation runs at 1Hz (1 GPS point per second)
-
-      return () => clearInterval(simInterval);
-    } else {
-      // Real Geolocation
-      if (!isRecording || isPaused) return;
-
-      const handleGPSUpdate = (position: GeolocationPosition) => {
-        const { latitude, longitude, speed: rawSpeed, altitude, heading } = position.coords;
+      if (index < route.length) {
+        const nextPoint = route[index];
         
-        // Browser speed is in m/s (meters per second)
-        // Convert to km/h
-        let speed = rawSpeed ? rawSpeed * 3.6 : 0;
+        // Update Coordinates
+        setCurrentCoords(nextPoint);
         
-        const timestamp = position.timestamp;
-
-        // Fallback speed calculation if API doesn't support speed directly
-        if (!rawSpeed && lastCoordsRef.current) {
-          const mDist = getDistanceInMeters(
+        // Track distance & path
+        if (lastCoordsRef.current) {
+          const stepDistMeters = getDistanceInMeters(
             lastCoordsRef.current.lat,
             lastCoordsRef.current.lng,
-            latitude,
-            longitude
+            nextPoint.lat,
+            nextPoint.lng
           );
-          const dtSeconds = (timestamp - lastCoordsRef.current.timestamp) / 1000;
-          if (dtSeconds > 0) {
-            speed = (mDist / dtSeconds) * 3.6; // convert m/s to km/h
-          }
+          const stepDistKm = stepDistMeters / 1000;
+          setDistance(prev => prev + stepDistKm);
         }
 
-        const newPoint: GPSCoords = {
-          lat: latitude,
-          lng: longitude,
-          speed: Math.round(speed * 10) / 10,
-          altitude: altitude !== null ? Math.round(altitude) : null,
-          heading: heading !== null ? Math.round(heading) : null,
-          timestamp
-        };
+        setPath(prev => {
+          const nextPath = [...prev, nextPoint];
+          pathRef.current = nextPath;
+          return nextPath;
+        });
 
-        setCurrentCoords(newPoint);
+        // Max Speed
+        setMaxSpeed(prev => Math.max(prev, nextPoint.speed));
 
-        // Update stats
+        lastCoordsRef.current = nextPoint;
+        simIndexRef.current = index + 1;
+      } else {
+        // Reset loop if simulation finishes
+        simIndexRef.current = 0;
+      }
+    }, 1000); // simulation runs at 1Hz (1 GPS point per second)
+
+    return () => clearInterval(simInterval);
+  }, [isSimulationActive, isRecording, isPaused]);
+
+  // 2. Real Geolocation Tracking Effect
+  useEffect(() => {
+    if (isSimulationActive) return;
+
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      setGpsError('Geolocation is not supported by this browser/device.');
+      return;
+    }
+
+    const handleGPSUpdate = (position: GeolocationPosition) => {
+      setGpsError(null);
+      const { latitude, longitude, speed: rawSpeed, altitude, heading } = position.coords;
+      
+      // Browser speed is in m/s (meters per second) -> convert to km/h
+      let speed = rawSpeed ? rawSpeed * 3.6 : 0;
+      const timestamp = position.timestamp;
+
+      // Fallback speed calculation if API doesn't support speed directly and we are recording
+      if (!rawSpeed && lastCoordsRef.current && isRecordingRef.current && !isPausedRef.current) {
+        const mDist = getDistanceInMeters(
+          lastCoordsRef.current.lat,
+          lastCoordsRef.current.lng,
+          latitude,
+          longitude
+        );
+        const dtSeconds = (timestamp - lastCoordsRef.current.timestamp) / 1000;
+        if (dtSeconds > 0) {
+          speed = (mDist / dtSeconds) * 3.6; // convert m/s to km/h
+        }
+      }
+
+      const newPoint: GPSCoords = {
+        lat: latitude,
+        lng: longitude,
+        speed: Math.round(speed * 10) / 10,
+        altitude: altitude !== null ? Math.round(altitude) : null,
+        heading: heading !== null ? Math.round(heading) : null,
+        timestamp
+      };
+
+      setCurrentCoords(newPoint);
+
+      // ONLY record/accumulate stats if recording and not paused
+      if (isRecordingRef.current && !isPausedRef.current) {
         if (lastCoordsRef.current) {
           const stepDistMeters = getDistanceInMeters(
             lastCoordsRef.current.lat,
@@ -161,36 +177,43 @@ export function useGPS(isSimulationActive: boolean) {
           return nextPath;
         });
 
-        if (speed > maxSpeed) {
-          setMaxSpeed(speed);
-        }
+        setMaxSpeed(prev => Math.max(prev, speed));
+      }
 
-        lastCoordsRef.current = newPoint;
-      };
+      lastCoordsRef.current = newPoint;
+    };
 
-      const handleGPSError = (error: GeolocationPositionError) => {
-        console.error('GPS tracking error:', error.message);
-      };
+    const handleGPSError = (error: GeolocationPositionError) => {
+      console.error('GPS tracking error:', error.message);
+      if (error.code === error.PERMISSION_DENIED) {
+        setGpsError('GPS permission denied. Enable location in device settings.');
+      } else if (error.code === error.POSITION_UNAVAILABLE) {
+        setGpsError('GPS signal unavailable. Ensure location is enabled and active.');
+      } else if (error.code === error.TIMEOUT) {
+        setGpsError('GPS connection timeout. Reconnecting...');
+      } else {
+        setGpsError(error.message);
+      }
+    };
 
-      // Watch Position
-      watchIdRef.current = navigator.geolocation.watchPosition(
-        handleGPSUpdate,
-        handleGPSError,
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0
-        }
-      );
+    // Watch Position
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      handleGPSUpdate,
+      handleGPSError,
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+      }
+    );
 
-      return () => {
-        if (watchIdRef.current !== null) {
-          navigator.geolocation.clearWatch(watchIdRef.current);
-          watchIdRef.current = null;
-        }
-      };
-    }
-  }, [isRecording, isPaused, isSimulationActive, maxSpeed]);
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
+  }, [isSimulationActive]);
 
   const startTrip = () => {
     setIsRecording(true);
@@ -256,6 +279,7 @@ export function useGPS(isSimulationActive: boolean) {
     maxSpeed,
     avgSpeed: Math.round(avgSpeed * 10) / 10,
     duration,
+    gpsError,
     startTrip,
     stopTrip,
     resetTrip,

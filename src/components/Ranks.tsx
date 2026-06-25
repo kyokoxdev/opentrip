@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Trip, UserProfile } from '../types';
 import { Trophy, Award, Target, Zap, Shield, ArrowUp, Star } from 'lucide-react';
 import { getProfiles, getTrips } from '../services/db';
@@ -62,13 +62,19 @@ export const Ranks: React.FC<RanksProps> = ({ tripsList, profile }) => {
   const [leaderboardList, setLeaderboardList] = useState<LeaderboardEntry[]>([]);
   const [userLeaderboardRank, setUserLeaderboardRank] = useState<number>(1);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState<boolean>(true);
+  const hasLoadedRef = useRef(false);
 
   useEffect(() => {
+    let active = true;
     async function loadLeaderboard() {
       try {
-        setLoadingLeaderboard(true);
+        if (!hasLoadedRef.current) {
+          setLoadingLeaderboard(true);
+        }
         const allProfiles = await getProfiles();
         const allTrips = await getTrips();
+
+        if (!active) return;
 
         const entries: LeaderboardEntry[] = allProfiles.map((p: UserProfile) => {
           // Filter trips for this profile.
@@ -124,15 +130,21 @@ export const Ranks: React.FC<RanksProps> = ({ tripsList, profile }) => {
         setLeaderboardList(entries);
         const rankIdx = entries.findIndex(e => e.isUser) + 1;
         setUserLeaderboardRank(rankIdx);
+        hasLoadedRef.current = true;
       } catch (err) {
         console.error('Failed to compile dynamic leaderboard:', err);
       } finally {
-        setLoadingLeaderboard(false);
+        if (active) {
+          setLoadingLeaderboard(false);
+        }
       }
     }
 
     loadLeaderboard();
-  }, [profile.name, tripsList]);
+    return () => {
+      active = false;
+    };
+  }, [profile.name, tripsList.length]);
 
   // 3. Structured Ranks list for Progression Map
   const RANK_LADDER = [
