@@ -102,7 +102,8 @@ export const TripHistory: React.FC<TripHistoryProps> = ({
         gForce: {
           x: latG,
           y: accG - brkG
-        }
+        },
+        altitude: coord.altitude
       };
     });
   }, [selectedTrip]);
@@ -193,7 +194,7 @@ export const TripHistory: React.FC<TripHistoryProps> = ({
               path={selectedTrip.path}
               mapProvider={settings.mapProvider}
               googleMapsApiKey={settings.googleMapsApiKey}
-              theme={settings.theme}
+              theme={settings.theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : settings.theme}
               activeTelemetryIndex={activeTelemetryIndex}
             />
           </div>

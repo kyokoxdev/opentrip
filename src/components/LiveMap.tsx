@@ -112,6 +112,45 @@ export const LiveMap: React.FC<LiveMapProps> = ({
   // Centering lock state
   const [isMapCentered, setIsMapCentered] = useState(true);
 
+  // Helper to pan the map to coordinates with a vertical offset to account for bottom overlays (warning shield and dashboard controls)
+  const panToWithOffset = (
+    map: any,
+    lat: number,
+    lng: number,
+    provider: 'google' | 'osm'
+  ) => {
+    const offsetY = hudPosition === 'top'
+      ? (gaugeSize === 'large' ? 50 : 40)
+      : (gaugeSize === 'large' ? 150 : 120);
+
+    if (provider === 'google') {
+      const google = (window as any).google;
+      if (google && google.maps) {
+        const projection = map.getProjection();
+        if (projection) {
+          const scale = Math.pow(2, map.getZoom());
+          const worldPoint = projection.fromLatLngToPoint(new google.maps.LatLng(lat, lng));
+          const newCenterPoint = new google.maps.Point(
+            worldPoint.x,
+            worldPoint.y + (offsetY / scale)
+          );
+          map.panTo(projection.fromPointToLatLng(newCenterPoint));
+        } else {
+          map.panTo({ lat, lng });
+        }
+      } else {
+        map.panTo({ lat, lng });
+      }
+    } else {
+      // OSM (Leaflet)
+      const latLng = L.latLng(lat, lng);
+      const zoom = map.getZoom();
+      const project = map.project(latLng, zoom);
+      const adjustedLatLng = map.unproject(L.point(project.x, project.y + offsetY), zoom);
+      map.panTo(adjustedLatLng);
+    }
+  };
+
   // Handle switching map provider (destroy previous instances)
   const destroyMaps = () => {
     // Destroy Google Maps
@@ -240,7 +279,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         if (map) {
           const pos = { lat: currentCoords.lat, lng: currentCoords.lng };
           if (isMapCentered) {
-            map.panTo(pos);
+            panToWithOffset(map, currentCoords.lat, currentCoords.lng, 'google');
           }
 
           // Rotate/Update Vehicle Marker
@@ -356,7 +395,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
       // Update OSM Map center dynamically
       const map = leafletMapInstanceRef.current;
       if (isMapCentered) {
-        map.panTo([currentCoords.lat, currentCoords.lng]);
+        panToWithOffset(map, currentCoords.lat, currentCoords.lng, 'osm');
       }
 
       // Update Vehicle Marker Pos & Heading
@@ -413,7 +452,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         leafletAlertMarkersRef.current.push(marker as any);
       });
     }
-  }, [currentCoords, path, activeAlerts, mapProvider, isGoogleMapsScriptLoaded, theme, isMapCentered]);
+  }, [currentCoords, path, activeAlerts, mapProvider, isGoogleMapsScriptLoaded, theme, isMapCentered, hudPosition, gaugeSize]);
 
   // Display Fallback setup if Google Maps is chosen but Key is missing
   const showGoogleError = mapProvider === 'google' && (!googleMapsApiKey || googleLoadError);
@@ -421,14 +460,14 @@ export const LiveMap: React.FC<LiveMapProps> = ({
   const handleReCenter = () => {
     setIsMapCentered(true);
     if (mapProvider === 'google' && googleMapInstanceRef.current) {
-      googleMapInstanceRef.current.panTo({ lat: currentCoords.lat, lng: currentCoords.lng });
+      panToWithOffset(googleMapInstanceRef.current, currentCoords.lat, currentCoords.lng, 'google');
     } else if (mapProvider === 'osm' && leafletMapInstanceRef.current) {
-      leafletMapInstanceRef.current.panTo([currentCoords.lat, currentCoords.lng]);
+      panToWithOffset(leafletMapInstanceRef.current, currentCoords.lat, currentCoords.lng, 'osm');
     }
   };
 
   const reCenterContainerStyle: React.CSSProperties = hudPosition === 'top' 
-    ? { top: gaugeSize === 'large' ? '166px' : '146px' }
+    ? { top: gaugeSize === 'large' ? '202px' : '182px' }
     : { bottom: gaugeSize === 'large' ? '330px' : '270px' };
 
   const reCenterMarginLeft = '0px';
@@ -483,19 +522,6 @@ export const LiveMap: React.FC<LiveMapProps> = ({
           </button>
         </div>
       )}
-
-      {/* Badge indicators */}
-      <div className="map-badge" style={{ zIndex: 5 }}>
-        <span 
-          style={{ 
-            width: '6px', 
-            height: '6px', 
-            borderRadius: '50%', 
-            backgroundColor: 'var(--neon-green)' 
-          }} 
-        />
-        {mapProvider === 'google' ? 'GOOGLE MAPS' : 'OPENSTREETMAP'}
-      </div>
 
       {/* Google map error helper message */}
       {showGoogleError && (

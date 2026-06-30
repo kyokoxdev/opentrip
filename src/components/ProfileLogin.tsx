@@ -82,16 +82,11 @@ export const ProfileLogin: React.FC<ProfileLoginProps> = ({ onLogin, onCreateNew
           }}>
             <User size={32} />
           </div>
-          <h1 style={{
+          <h1 className="app-wordmark" style={{
             fontSize: '1.8rem',
             margin: 0,
-            textTransform: 'uppercase',
-            letterSpacing: '3px',
-            fontWeight: 800,
-            color: 'var(--text-primary)',
-            textShadow: '0 0 10px rgba(0, 229, 255, 0.3)'
           }}>
-            OpenTrip
+            <span className="word-open">Open</span><span className="word-trip">Trip</span>
           </h1>
           <span style={{
             fontSize: '0.75rem',

@@ -59,7 +59,7 @@ export function useCameraAlerts(
   const [cameras, setCameras] = useState<CameraAlert[]>([]);
   
   const lastCoordsRef = useRef<{ lat: number; lng: number } | null>(null);
-  const playCooldownRef = useRef<{ [key: string]: number }>({});
+  const playedAlertsRef = useRef<{ [key: string]: { warning?: boolean; alert?: boolean } }>({});
 
   // Reload speed cameras/signals whenever coordinate shifts significantly
   useEffect(() => {
@@ -106,6 +106,7 @@ export function useCameraAlerts(
     if (!isRecording || cameras.length === 0) {
       setActiveAlerts([]);
       setClosestAlert(null);
+      playedAlertsRef.current = {};
       return;
     }
 
@@ -121,24 +122,32 @@ export function useCameraAlerts(
 
     setActiveAlerts(updatedAlerts);
 
+    // Clean up played states for alerts that are no longer active
+    const activeAlertIds = new Set(updatedAlerts.map(cam => cam.id));
+    for (const id in playedAlertsRef.current) {
+      if (!activeAlertIds.has(id)) {
+        delete playedAlertsRef.current[id];
+      }
+    }
+
     if (updatedAlerts.length > 0) {
       const closest = updatedAlerts[0];
       setClosestAlert(closest);
 
       // Proximity warning trigger
-      const now = Date.now();
-      const lastPlayed = playCooldownRef.current[closest.id] || 0;
-      const cooldown = 15000; // Play sounds at most every 15s per alert
+      if (settings.soundAlerts && closest.distance !== undefined) {
+        const state = playedAlertsRef.current[closest.id] || {};
 
-      if (now - lastPlayed > cooldown && settings.soundAlerts) {
-        // Trigger sound warning
-        if (closest.distance !== undefined) {
-          if (closest.distance < 150) {
+        if (closest.distance < 150) {
+          if (!state.alert) {
             synthWarningSound('alert'); // critical proximity
-          } else {
-            synthWarningSound('warning'); // caution proximity
+            playedAlertsRef.current[closest.id] = { ...state, alert: true };
           }
-          playCooldownRef.current[closest.id] = now;
+        } else {
+          if (!state.warning) {
+            synthWarningSound('warning'); // caution proximity
+            playedAlertsRef.current[closest.id] = { ...state, warning: true };
+          }
         }
       }
     } else {

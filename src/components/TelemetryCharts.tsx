@@ -16,6 +16,7 @@ export const TelemetryCharts: React.FC<TelemetryChartsProps> = ({
 }) => {
   const speedChartRef = useRef<SVGSVGElement>(null);
   const gForceChartRef = useRef<SVGSVGElement>(null);
+  const elevationChartRef = useRef<SVGSVGElement>(null);
 
   if (!telemetryLogs || telemetryLogs.length === 0) {
     return (
@@ -36,6 +37,22 @@ export const TelemetryCharts: React.FC<TelemetryChartsProps> = ({
   // G-Force values
   const lateralGs = telemetryLogs.map(log => log.gForce.x);
   const longitudinalGs = telemetryLogs.map(log => log.gForce.y);
+
+  // Altitude/Elevation values (convert if imperial)
+  const elevationMultiplier = isImperial ? 3.28084 : 1;
+  let lastKnownAlt = 0;
+  // Fallback to previous value if null
+  const altitudes = telemetryLogs.map(log => {
+    if (log.altitude !== null && log.altitude !== undefined) {
+      lastKnownAlt = log.altitude;
+    }
+    return lastKnownAlt;
+  });
+  const displayAltitudes = altitudes.map(alt => alt * elevationMultiplier);
+  const minAltitude = Math.min(...displayAltitudes);
+  const maxAltitude = Math.max(...displayAltitudes);
+  const elevationRange = maxAltitude - minAltitude;
+  const altSpan = Math.max(elevationRange, 10); // avoid flat line division by zero
   
   // Find extreme G bounds
   const maxLatG = Math.max(...lateralGs.map(Math.abs), 0.1);
@@ -89,6 +106,22 @@ export const TelemetryCharts: React.FC<TelemetryChartsProps> = ({
     const y = gCenterY - (val / absoluteMaxG) * (chartH / 2);
     longGPath += `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
   });
+
+  // 3. Generate Elevation Path
+  let elevationPath = '';
+  displayAltitudes.forEach((val, i) => {
+    const x = paddingX + (i / (totalPoints - 1)) * chartW;
+    const y = height - paddingBottom - ((val - minAltitude) / altSpan) * chartH;
+    elevationPath += `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+  });
+
+  let elevationAreaPath = elevationPath;
+  if (totalPoints > 0) {
+    const lastX = paddingX + chartW;
+    const firstX = paddingX;
+    const baseY = height - paddingBottom;
+    elevationAreaPath += ` L ${lastX.toFixed(1)} ${baseY} L ${firstX.toFixed(1)} ${baseY} Z`;
+  }
 
   // Interactivity Scrubber Handler
   const handleInteraction = (
@@ -152,28 +185,36 @@ export const TelemetryCharts: React.FC<TelemetryChartsProps> = ({
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', textAlign: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', textAlign: 'center' }}>
           <div style={{ padding: '6px', background: 'var(--bg-input)', borderRadius: '8px' }}>
             <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)' }}>SPEED</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--neon-cyan)', fontFamily: 'var(--gauge-font)' }}>
+            <div style={{ fontSize: '1.0rem', fontWeight: 700, color: 'var(--neon-cyan)', fontFamily: 'var(--gauge-font)' }}>
               {activeLog ? Math.round(activeLog.speed * speedMultiplier) : '--'}
-              <span style={{ fontSize: '0.65rem', fontWeight: 500, marginLeft: '2px' }}>{speedUnit}</span>
+              <span style={{ fontSize: '0.6rem', fontWeight: 500, marginLeft: '1px' }}>{speedUnit}</span>
             </div>
           </div>
 
           <div style={{ padding: '6px', background: 'var(--bg-input)', borderRadius: '8px' }}>
-            <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)' }}>LATERAL G</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--neon-orange)', fontFamily: 'var(--gauge-font)' }}>
+            <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)' }}>LAT G</div>
+            <div style={{ fontSize: '1.0rem', fontWeight: 700, color: 'var(--neon-orange)', fontFamily: 'var(--gauge-font)' }}>
               {activeLog ? activeLog.gForce.x.toFixed(2) : '--'}
-              <span style={{ fontSize: '0.65rem', fontWeight: 500, marginLeft: '1px' }}>G</span>
+              <span style={{ fontSize: '0.6rem', fontWeight: 500, marginLeft: '0.5px' }}>G</span>
             </div>
           </div>
 
           <div style={{ padding: '6px', background: 'var(--bg-input)', borderRadius: '8px' }}>
-            <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)' }}>LONGITUDINAL G</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: activeLog && activeLog.gForce.y >= 0 ? 'var(--neon-green)' : 'var(--neon-red)', fontFamily: 'var(--gauge-font)' }}>
+            <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)' }}>LONG G</div>
+            <div style={{ fontSize: '1.0rem', fontWeight: 700, color: activeLog && activeLog.gForce.y >= 0 ? 'var(--neon-green)' : 'var(--neon-red)', fontFamily: 'var(--gauge-font)' }}>
               {activeLog ? activeLog.gForce.y.toFixed(2) : '--'}
-              <span style={{ fontSize: '0.65rem', fontWeight: 500, marginLeft: '1px' }}>G</span>
+              <span style={{ fontSize: '0.6rem', fontWeight: 500, marginLeft: '0.5px' }}>G</span>
+            </div>
+          </div>
+
+          <div style={{ padding: '6px', background: 'var(--bg-input)', borderRadius: '8px' }}>
+            <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)' }}>ELEVATION</div>
+            <div style={{ fontSize: '1.0rem', fontWeight: 700, color: 'var(--neon-green)', fontFamily: 'var(--gauge-font)' }}>
+              {activeLog && activeLog.altitude !== null && activeLog.altitude !== undefined ? Math.round(activeLog.altitude * elevationMultiplier) : '--'}
+              <span style={{ fontSize: '0.6rem', fontWeight: 500, marginLeft: '1px' }}>{isImperial ? 'ft' : 'm'}</span>
             </div>
           </div>
         </div>
@@ -350,6 +391,82 @@ export const TelemetryCharts: React.FC<TelemetryChartsProps> = ({
                 stroke="#ffffff"
                 strokeWidth="1"
                 filter="url(#glow-long)"
+              />
+            </>
+          )}
+        </svg>
+      </div>
+
+      {/* Chart 3: Elevation Profile */}
+      <div className="card" style={{ margin: 0, padding: '14px 12px 8px 12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <span style={{ color: 'var(--neon-green)', fontWeight: 600 }}>Elevation Profile</span>
+          <span style={{ color: 'var(--text-secondary)' }}>
+            Min: {Math.round(minAltitude)}{isImperial ? 'ft' : 'm'} / Max: {Math.round(maxAltitude)}{isImperial ? 'ft' : 'm'}
+          </span>
+        </div>
+        
+        <svg
+          ref={elevationChartRef}
+          viewBox={`0 0 ${width} ${height}`}
+          style={{ width: '100%', height: 'auto', overflow: 'visible', cursor: 'crosshair', touchAction: 'none' }}
+          onMouseMove={(e) => handleInteraction(e, elevationChartRef.current)}
+          onTouchMove={(e) => handleInteraction(e, elevationChartRef.current)}
+          onMouseLeave={handleMouseLeave}
+          onTouchEnd={handleMouseLeave}
+        >
+          <defs>
+            <filter id="glow-elevation" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="2.5" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+            <linearGradient id="elevation-area-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--neon-green)" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="var(--neon-green)" stopOpacity="0.0" />
+            </linearGradient>
+          </defs>
+
+          {/* Gridlines */}
+          <line x1={paddingX} y1={paddingTop} x2={width - paddingX} y2={paddingTop} stroke="var(--border-dim)" strokeDasharray="3,3" />
+          <line x1={paddingX} y1={paddingTop + chartH / 2} x2={width - paddingX} y2={paddingTop + chartH / 2} stroke="var(--border-dim)" strokeDasharray="3,3" />
+          <line x1={paddingX} y1={height - paddingBottom} x2={width - paddingX} y2={height - paddingBottom} stroke="var(--border-bright)" strokeWidth="1.5" />
+
+          {/* Elevation Fill Area */}
+          <path d={elevationAreaPath} fill="url(#elevation-area-grad)" />
+
+          {/* Elevation Line */}
+          <path
+            d={elevationPath}
+            fill="none"
+            stroke="var(--neon-green)"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            filter="url(#glow-elevation)"
+          />
+
+          {/* Hover Scrubber Line */}
+          {activeTelemetryIndex !== null && (
+            <>
+              {/* Scrubber vertical line */}
+              <line
+                x1={paddingX + (activeTelemetryIndex / (totalPoints - 1)) * chartW}
+                y1={paddingTop - 5}
+                x2={paddingX + (activeTelemetryIndex / (totalPoints - 1)) * chartW}
+                y2={height - paddingBottom}
+                stroke="var(--text-primary)"
+                strokeWidth="1"
+                strokeDasharray="2,2"
+              />
+              {/* Scrubber intersection dot */}
+              <circle
+                cx={paddingX + (activeTelemetryIndex / (totalPoints - 1)) * chartW}
+                cy={height - paddingBottom - ((displayAltitudes[activeTelemetryIndex] - minAltitude) / altSpan) * chartH}
+                r="5"
+                fill="var(--neon-green)"
+                stroke="#ffffff"
+                strokeWidth="1.5"
+                filter="url(#glow-elevation)"
               />
             </>
           )}

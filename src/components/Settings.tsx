@@ -37,7 +37,7 @@ export const Settings: React.FC<SettingsProps> = ({
   const [apiKey, setApiKey] = React.useState(settings.googleMapsApiKey);
   const [units, setUnits] = React.useState(settings.units);
   const [mapProvider, setMapProvider] = React.useState(settings.mapProvider);
-  const [theme, setTheme] = React.useState(settings.theme);
+  const [theme, setTheme] = React.useState<'auto' | 'light' | 'dark'>(settings.theme);
   const [sound, setSound] = React.useState(settings.soundAlerts);
   const [radius, setRadius] = React.useState(settings.cameraRadius);
   
@@ -163,22 +163,37 @@ export const Settings: React.FC<SettingsProps> = ({
           </div>
         </div>
 
-        {/* Theme preference toggle */}
-        <div className="form-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', borderTop: '1px solid var(--border-dim)', paddingTop: '16px' }}>
-          <div>
-            <label className="form-label" style={{ margin: 0 }}>Light Theme Mode</label>
+        {/* Theme preference — 3-segment slider */}
+        <div className="form-group" style={{ marginTop: '20px', borderTop: '1px solid var(--border-dim)', paddingTop: '16px' }}>
+          <div style={{ marginBottom: '12px' }}>
+            <label className="form-label" style={{ margin: 0 }}>App Theme</label>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-              Enable clean slate daylight theme instead of dark HUD glow
+              Auto follows your device's system appearance
             </span>
           </div>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={theme === 'light'}
-              onChange={(e) => setTheme(e.target.checked ? 'light' : 'dark')}
+          <div className="theme-slider-track">
+            {/* Sliding pill indicator */}
+            <div
+              className="theme-slider-thumb"
+              style={{
+                transform: theme === 'auto'
+                  ? 'translateX(0%)'
+                  : theme === 'dark'
+                  ? 'translateX(100%)'
+                  : 'translateX(200%)',
+              }}
             />
-            <span className="slider"></span>
-          </label>
+            {(['auto', 'dark', 'light'] as const).map((opt) => (
+              <button
+                key={opt}
+                className={`theme-slider-option${theme === opt ? ' active' : ''}`}
+                onClick={() => setTheme(opt)}
+                type="button"
+              >
+                {opt === 'auto' ? 'Auto' : opt === 'dark' ? 'Dark' : 'Light'}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Audio Toggles */}
@@ -601,6 +616,23 @@ export const Settings: React.FC<SettingsProps> = ({
           <Trash2 size={16} />
           <span>Reset All Trip History</span>
         </button>
+      </div>
+
+      {/* Version Label */}
+      <div 
+        style={{
+          textAlign: 'center',
+          fontSize: '0.75rem',
+          marginTop: '24px',
+          paddingBottom: '16px',
+          fontFamily: 'var(--sans-font)',
+          letterSpacing: '0.5px'
+        }}
+      >
+        <span className="app-wordmark" style={{ fontSize: 'inherit' }}>
+          <span className="word-open">Open</span><span className="word-trip">Trip</span>
+        </span>
+        <span style={{ color: 'var(--text-muted)' }}> v1.0.0</span>
       </div>
 
       {/* Status messages popup */}

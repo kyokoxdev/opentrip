@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Trip, AppSettings, UserProfile, Vehicle } from '../types';
-import { User, Trophy, Calendar, Compass, Shield, Clock, Zap, Bike, Car, ArrowLeft, ArrowUpDown, Camera, Wrench, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
+import { User, Trophy, Calendar, Compass, Shield, Clock, Zap, Bike, Car, ArrowLeft, ArrowUpDown, Camera, Wrench, FileText, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
 import { PastTripMap } from './PastTripMap';
 import { TelemetryCharts } from './TelemetryCharts';
 import { ShareCard } from './ShareCard';
@@ -135,6 +135,16 @@ export const Profile: React.FC<ProfileProps> = ({
   const distUnit = isImperial ? 'mi' : 'km';
   const speedUnit = isImperial ? 'mph' : 'km/h';
   const speedMultiplier = isImperial ? 0.621371 : 1;
+
+  // Profile edit states
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [tempProfileName, setTempProfileName] = useState(profile?.name || '');
+
+  useEffect(() => {
+    if (profile) {
+      setTempProfileName(profile.name);
+    }
+  }, [profile?.name]);
 
   // Edit states
   const [editVehicleType, setEditVehicleType] = useState(profile?.vehicleType || 'car');
@@ -333,7 +343,8 @@ export const Profile: React.FC<ProfileProps> = ({
         gForce: {
           x: latG,
           y: accG - brkG
-        }
+        },
+        altitude: coord.altitude
       };
     });
   }, [selectedTrip]);
@@ -450,6 +461,19 @@ export const Profile: React.FC<ProfileProps> = ({
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleSaveProfileName = () => {
+    if (!profile) return;
+    if (!tempProfileName.trim()) {
+      alert('Driver name cannot be empty.');
+      return;
+    }
+    onUpdateProfile({
+      ...profile,
+      name: tempProfileName.trim()
+    });
+    setIsEditingProfile(false);
   };
 
   const handleVehicleImagesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -637,7 +661,7 @@ export const Profile: React.FC<ProfileProps> = ({
               path={selectedTrip.path}
               mapProvider={settings.mapProvider}
               googleMapsApiKey={settings.googleMapsApiKey}
-              theme={settings.theme}
+              theme={settings.theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : settings.theme}
               activeTelemetryIndex={activeTelemetryIndex}
             />
           </div>
@@ -764,10 +788,76 @@ export const Profile: React.FC<ProfileProps> = ({
             style={{ display: 'none' }}
           />
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <h2 style={{ fontSize: '1.6rem', margin: 0, textTransform: 'uppercase', color: 'var(--text-primary)' }}>
-              {profile.name}
-            </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexGrow: 1 }}>
+            {isEditingProfile ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', maxWidth: '320px' }}>
+                <input
+                  type="text"
+                  className="input-field"
+                  value={tempProfileName}
+                  onChange={(e) => setTempProfileName(e.target.value)}
+                  style={{
+                    fontSize: '1rem',
+                    padding: '6px 12px',
+                    margin: 0,
+                    width: '100%',
+                    background: 'var(--bg-input)',
+                    color: 'var(--text-primary)',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-bright)'
+                  }}
+                  maxLength={25}
+                  placeholder="Driver Name"
+                />
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  onClick={handleSaveProfileName}
+                  style={{ padding: '6px 12px', fontSize: '0.75rem', borderRadius: '8px' }}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => {
+                    setTempProfileName(profile.name);
+                    setIsEditingProfile(false);
+                  }}
+                  style={{ padding: '6px 12px', fontSize: '0.75rem', borderRadius: '8px' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h2 style={{ fontSize: '1.6rem', margin: 0, textTransform: 'uppercase', color: 'var(--text-primary)' }}>
+                  {profile.name}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTempProfileName(profile.name);
+                    setIsEditingProfile(true);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'color 0.2s',
+                    borderRadius: '4px'
+                  }}
+                  title="Edit Driver Name"
+                >
+                  <Edit2 size={16} style={{ color: 'var(--neon-cyan)' }} />
+                </button>
+              </div>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <span 
                 style={{ 

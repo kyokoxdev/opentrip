@@ -16,6 +16,7 @@ export interface TelemetryLog {
   timestamp: number;
   speed: number; // km/h
   gForce: GForce;
+  altitude: number | null; // meters
 }
 
 export interface Trip {
@@ -93,7 +94,7 @@ export interface UserProfile {
 export interface AppSettings {
   units: 'metric' | 'imperial'; // metric: km/h, km. imperial: mph, miles.
   mapProvider: 'google' | 'osm'; // Google Maps vs OpenStreetMap
-  theme: 'light' | 'dark'; // UI theme toggle
+  theme: 'auto' | 'light' | 'dark'; // UI theme: auto follows system prefers-color-scheme
   googleMapsApiKey: string;
   soundAlerts: boolean;
   cameraRadius: number; // distance threshold in meters to trigger alerts

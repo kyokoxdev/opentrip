@@ -7,7 +7,7 @@ export function useGPS(isSimulationActive: boolean) {
     lat: SIMULATED_BASE_COORDS.lat,
     lng: SIMULATED_BASE_COORDS.lng,
     speed: 0,
-    altitude: 0,
+    altitude: null, // null until GPS lock is acquired
     heading: 0,
     timestamp: Date.now()
   });
@@ -148,7 +148,9 @@ export function useGPS(isSimulationActive: boolean) {
         lat: latitude,
         lng: longitude,
         speed: Math.round(speed * 10) / 10,
-        altitude: altitude !== null ? Math.round(altitude) : null,
+        // Treat null or negative altitude as null — negative values indicate
+        // an unreliable WGS84 ellipsoidal height reading before GPS lock
+        altitude: altitude !== null && altitude >= 0 ? Math.round(altitude) : null,
         heading: heading !== null ? Math.round(heading) : null,
         timestamp
       };

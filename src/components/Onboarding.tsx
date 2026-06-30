@@ -909,7 +909,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
       }}
     >
       <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-        <h1 style={{ fontSize: '1.8rem', marginBottom: '2px', letterSpacing: '2px' }}>OpenTrip</h1>
+        <h1 className="app-wordmark" style={{ fontSize: '1.8rem', marginBottom: '2px' }}><span className="word-open">Open</span><span className="word-trip">Trip</span></h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', margin: 0 }}>
           Open-Source driving telemetry, G-Force logs & alerts
         </p>

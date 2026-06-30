@@ -31,7 +31,7 @@ function App() {
   const [settings, setSettings] = useState<AppSettings>({
     units: 'metric',
     mapProvider: 'osm',
-    theme: 'dark',
+    theme: 'auto',
     googleMapsApiKey: '',
     soundAlerts: true,
     cameraRadius: 500,
@@ -133,19 +133,40 @@ function App() {
     loadData();
   }, []);
 
-  // Apply theme class to HTML root element dynamically
+  // Apply theme class based on setting: 'auto' follows system prefers-color-scheme
   useEffect(() => {
-    const rootElement = document.getElementById('root');
-    if (rootElement) {
+    const root = document.getElementById('root');
+    if (!root) return;
+
+    const applyTheme = (prefersDark: boolean) => {
       if (settings.theme === 'light') {
-        rootElement.classList.add('light-theme');
+        root.classList.add('light-theme');
+      } else if (settings.theme === 'dark') {
+        root.classList.remove('light-theme');
       } else {
-        rootElement.classList.remove('light-theme');
+        // 'auto': mirror the OS preference
+        if (prefersDark) {
+          root.classList.remove('light-theme');
+        } else {
+          root.classList.add('light-theme');
+        }
       }
-    }
+    };
+
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    applyTheme(mq.matches);
+
+    const listener = (e: MediaQueryListEvent) => applyTheme(e.matches);
+    mq.addEventListener('change', listener);
+    return () => mq.removeEventListener('change', listener);
   }, [settings.theme]);
 
   const isSimActive = isSimulationMode && !isActualMobileDevice;
+
+  // Resolve 'auto' theme to 'light' | 'dark' for components that need an explicit value
+  const effectiveTheme: 'light' | 'dark' = settings.theme === 'auto'
+    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    : settings.theme;
 
   // GPS telemetrics hook
   const gps = useGPS(isSimActive);
@@ -181,7 +202,8 @@ function App() {
         gForce: {
           x: motion.gForce.x,
           y: motion.gForce.y
-        }
+        },
+        altitude: gps.currentCoords.altitude
       });
     }
   }, [gps.currentCoords, gps.isRecording, gps.isPaused, motion.gForce]);
@@ -338,8 +360,34 @@ function App() {
   return (
     <>
       {/* Top Header & Simulation Toggle */}
-      <header className="sim-header">
-        <h1 style={{ fontSize: '1.4rem', margin: 0, letterSpacing: '2px' }}>OpenTrip</h1>
+      <header className={`sim-header ${activeTab === 'dashboard' ? 'header-transparent' : 'header-opaque'}`}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <h1 className="app-wordmark" style={{ 
+            fontSize: '1.15rem', 
+            margin: 0,
+            ...(activeTab === 'dashboard' ? {
+              textShadow: '0 2px 8px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.9)'
+            } : {})
+          }}>
+            <span className="word-open">Open</span><span className="word-trip">Trip</span>
+          </h1>
+          {activeTab === 'dashboard' && (
+            <div className="map-badge-header">
+              <span 
+                style={{ 
+                  width: '6px', 
+                  height: '6px', 
+                  borderRadius: '50%', 
+                  backgroundColor: 'var(--neon-green)',
+                  boxShadow: 'var(--glow-green)'
+                }} 
+              />
+              <span>
+                {settings.mapProvider === 'google' ? 'GOOGLE MAPS' : 'OPENSTREETMAP'}
+              </span>
+            </div>
+          )}
+        </div>
         {!isActualMobileDevice && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             {isSimulationMode ? (
@@ -366,7 +414,7 @@ function App() {
         
         <div 
           className={`tab-pane ${activeTab === 'dashboard' ? 'active' : ''}`}
-          style={{ overflow: 'hidden', display: activeTab === 'dashboard' ? 'block' : 'none' }}
+          style={{ overflow: 'hidden' }}
         >
           {/* Google or OpenStreetMap full height route view */}
           <LiveMap 
@@ -375,7 +423,7 @@ function App() {
             activeAlerts={alerts.activeAlerts}
             googleMapsApiKey={settings.googleMapsApiKey}
             mapProvider={settings.mapProvider}
-            theme={settings.theme}
+            theme={effectiveTheme}
             height="100%"
             hudPosition={settings.hudPosition}
             gaugeSize={settings.gaugeSize}
@@ -384,7 +432,7 @@ function App() {
           {gps.gpsError && !isSimActive && (
             <div style={{
               position: 'absolute',
-              top: settings.hudPosition === 'top' ? '140px' : '20px',
+              top: settings.hudPosition === 'top' ? '176px' : '56px',
               left: '50%',
               transform: 'translateX(-50%)',
               width: 'calc(100% - 32px)',
@@ -416,7 +464,7 @@ function App() {
               className="card" 
               style={{ 
                 position: 'absolute', 
-                top: '12px', 
+                top: '48px', 
                 left: '50%',
                 transform: 'translateX(-50%)',
                 width: 'calc(100% - 24px)',
@@ -547,6 +595,18 @@ function App() {
               </div>
               
               <div style={{ width: '1px', background: 'var(--border-dim)' }} />
+
+              <div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Elevation</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'var(--gauge-font)', color: 'var(--text-primary)' }}>
+                  {gps.currentCoords.altitude !== null 
+                    ? Math.round(isImperial ? gps.currentCoords.altitude * 3.28084 : gps.currentCoords.altitude)
+                    : '--'}
+                  <span style={{ fontSize: '0.75rem', color: 'var(--neon-green)', marginLeft: '2px' }}>{isImperial ? 'FT' : 'M'}</span>
+                </div>
+              </div>
+              
+              <div style={{ width: '1px', background: 'var(--border-dim)' }} />
               
               <div>
                 <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Time Elapsed</div>
@@ -602,7 +662,7 @@ function App() {
 
         <div 
           className={`tab-pane ${activeTab === 'history' ? 'active' : ''}`}
-          style={{ overflowY: 'auto', padding: '16px', display: activeTab === 'history' ? 'block' : 'none' }}
+          style={{ overflowY: 'auto', padding: '16px' }}
         >
           <TripHistory 
             trips={filteredTripsList}
@@ -613,7 +673,7 @@ function App() {
 
         <div 
           className={`tab-pane ${activeTab === 'ranks' ? 'active' : ''}`}
-          style={{ overflowY: 'auto', padding: '16px', display: activeTab === 'ranks' ? 'block' : 'none' }}
+          style={{ overflowY: 'auto', padding: '16px' }}
         >
           {settings.userProfile && (
             <Ranks 
@@ -625,7 +685,7 @@ function App() {
 
         <div 
           className={`tab-pane ${activeTab === 'settings' ? 'active' : ''}`}
-          style={{ overflowY: 'auto', padding: '16px', display: activeTab === 'settings' ? 'block' : 'none' }}
+          style={{ overflowY: 'auto', padding: '16px' }}
         >
           <Settings 
             settings={settings}
@@ -637,7 +697,7 @@ function App() {
 
         <div 
           className={`tab-pane ${activeTab === 'profile' ? 'active' : ''}`}
-          style={{ overflowY: 'auto', padding: '16px', display: activeTab === 'profile' ? 'block' : 'none' }}
+          style={{ overflowY: 'auto', padding: '16px' }}
         >
           <Profile 
             trips={filteredTripsList}
